@@ -8,8 +8,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MastoCred-Inc/web-app/database/postgres"
 	"github.com/MastoCred-Inc/web-app/h"
-	"github.com/MastoCred-Inc/web-app/utility/helpers/environment"
+	"github.com/MastoCred-Inc/web-app/utility/environment"
 	ginzerolog "github.com/dn365/gin-zerolog"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -27,10 +28,13 @@ func main() {
 	r.Use(cors.New(corsConfig), gin.Recovery())
 	r.Use(ginzerolog.Logger("api"))
 
-	_, err := environment.New()
+	env, err := environment.New()
 	if err != nil {
 		applicationLogger.Fatal().Err(err)
 	}
+
+	postgresDB := postgres.New(logger, env)
+	defer postgresDB.Close()
 
 	r.Any("/api", h.GraphqlHandler(logger)) // grpc endpoint handler
 	r.GET("/graphql-ui", h.PlaygroundHandler())

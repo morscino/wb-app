@@ -1,0 +1,25 @@
+version: '3.1'
+
+services:
+  postgres:
+    build: ./postgres
+    volumes:
+      - ./postgres/pgdata:/pgdata
+    ports:
+      - "5436:5436"
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - PGDATA=/pgdata
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        app_env: ${APP_ENV}
+    volumes:
+      - ./backend:/go/src/github.com/MastoCred-Inc/web-app/backend
+    ports:
+      - "9004:9004"
+    depends_on:
+      - postgres

@@ -53,7 +53,7 @@ func main() {
 	}
 
 	//go func() {
-	// 	// service connections
+	// 	// service connection
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		applicationLogger.Fatal().Msgf("listen: %s", err)
 	}

@@ -1,0 +1,2 @@
+backend/src/.env
+postgres/pgdata

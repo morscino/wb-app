@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MastoCred-Inc/web-app/controller"
 	"github.com/MastoCred-Inc/web-app/database/postgres"
 	"github.com/MastoCred-Inc/web-app/h"
 	"github.com/MastoCred-Inc/web-app/utility/environment"
@@ -36,7 +37,9 @@ func main() {
 	postgresDB := postgres.New(logger, env)
 	defer postgresDB.Close()
 
-	r.Any("/api", h.GraphqlHandler(logger)) // grpc endpoint handler
+	controller := controller.New(logger, postgresDB)
+
+	r.Any("/api", h.GraphqlHandler(logger, *controller)) // grpc endpoint handler
 	r.GET("/graphql-ui", h.PlaygroundHandler())
 
 	r.GET("/", func(c *gin.Context) {

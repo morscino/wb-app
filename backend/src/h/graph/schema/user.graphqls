@@ -1,0 +1,26 @@
+type User {
+  id: ID!
+  firstname: String
+  lastname: String
+  email: String
+  username: String
+}
+
+input RegisterUser {
+  email: String!
+  lastname : String!
+  firstname : String!
+  password: String!
+  passwordMatch : String!
+}
+
+input LoginUser{
+  email: String!
+  password : String!
+}
+
+type UserAuthenticated {
+  token : String!
+  user : User!
+}
+

@@ -1,6 +1,9 @@
 package graph
 
-import "github.com/rs/zerolog"
+import (
+	"github.com/MastoCred-Inc/web-app/controller"
+	"github.com/rs/zerolog"
+)
 
 // This file will not be regenerated automatically.
 //
@@ -9,12 +12,14 @@ import "github.com/rs/zerolog"
 //go:generate go run github.com/99designs/gqlgen generate
 
 type Resolver struct {
-	logger zerolog.Logger
+	logger     zerolog.Logger
+	controller controller.Operations
 }
 
 // New created a new instance of Resolver
-func New(l zerolog.Logger) *Resolver {
+func New(l zerolog.Logger, c controller.Operations) *Resolver {
 	return &Resolver{
-		logger: l,
+		logger:     l,
+		controller: c,
 	}
 }

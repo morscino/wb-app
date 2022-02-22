@@ -2,19 +2,24 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+import (
+	"github.com/MastoCred-Inc/web-app/models"
+)
+
+type LoginUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type RegisterUser struct {
+	Email         string `json:"email"`
+	Lastname      string `json:"lastname"`
+	Firstname     string `json:"firstname"`
+	Password      string `json:"password"`
+	PasswordMatch string `json:"passwordMatch"`
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type UserAuthenticated struct {
+	Token string       `json:"token"`
+	User  *models.User `json:"user"`
 }

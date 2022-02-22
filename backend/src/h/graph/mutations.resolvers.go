@@ -1,8 +1,5 @@
 package graph
 
-// This file will be automatically regenerated based on the schema, any resolver implementations
-// will be copied through when generating and any unknown code will be moved to the end.
-
 import (
 	"context"
 
@@ -11,6 +8,9 @@ import (
 	"github.com/MastoCred-Inc/web-app/h/graph/translator"
 	"github.com/MastoCred-Inc/web-app/models"
 )
+
+// This file will be automatically regenerated based on the schema, any resolver implementations
+// will be copied through when generating and any unknown code will be moved to the end.
 
 func (r *mutationResolver) RegisterUser(ctx context.Context, input model.RegisterUser) (*models.User, error) {
 

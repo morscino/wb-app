@@ -11,6 +11,7 @@ import (
 	"github.com/MastoCred-Inc/web-app/controller"
 	"github.com/MastoCred-Inc/web-app/database/postgres"
 	"github.com/MastoCred-Inc/web-app/h"
+	"github.com/MastoCred-Inc/web-app/middleware"
 	"github.com/MastoCred-Inc/web-app/utility/environment"
 	ginzerolog "github.com/dn365/gin-zerolog"
 	"github.com/gin-contrib/cors"
@@ -37,7 +38,13 @@ func main() {
 	postgresDB := postgres.New(logger, env)
 	defer postgresDB.Close()
 
-	controller := controller.New(logger, postgresDB)
+	r.Use(GinContextToContextMiddleware())
+	newMiddleware, err := middleware.NewMiddleware(logger, *env, postgresDB)
+	if err != nil {
+		applicationLogger.Fatal().Msgf("middleware error: %v", err)
+	}
+
+	controller := controller.New(logger, postgresDB, newMiddleware)
 
 	r.Any("/api", h.GraphqlHandler(logger, *controller)) // grpc endpoint handler
 	r.GET("/graphql-ui", h.PlaygroundHandler())
@@ -80,4 +87,13 @@ func main() {
 	default:
 	}
 
+}
+
+// GinContextToContextMiddleware middleware for gin context
+func GinContextToContextMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.WithValue(c.Request.Context(), "ctxkey", c)
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
+	}
 }

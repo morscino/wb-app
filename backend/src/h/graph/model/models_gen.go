@@ -6,11 +6,6 @@ import (
 	"github.com/MastoCred-Inc/web-app/models"
 )
 
-type LoginUser struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 type RegisterUser struct {
 	Email         string `json:"email"`
 	Lastname      string `json:"lastname"`

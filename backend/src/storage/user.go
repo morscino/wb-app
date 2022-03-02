@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -source user.go -destination ./mock/mock_user.go -package mock UserStore
 type UserStore interface {
 	RegisterUser(ctx context.Context, user models.User) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)

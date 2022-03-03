@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/MastoCred-Inc/web-app/controller"
-	"github.com/MastoCred-Inc/web-app/database/postgres"
+	"github.com/MastoCred-Inc/web-app/database/postgres_db"
 	"github.com/MastoCred-Inc/web-app/h"
 	"github.com/MastoCred-Inc/web-app/middleware"
 	"github.com/MastoCred-Inc/web-app/utility/environment"
@@ -35,7 +35,7 @@ func main() {
 		applicationLogger.Fatal().Err(err)
 	}
 
-	postgresDB := postgres.New(logger, env)
+	postgresDB := postgres_db.New(logger, env)
 	defer postgresDB.Close()
 
 	r.Use(GinContextToContextMiddleware())

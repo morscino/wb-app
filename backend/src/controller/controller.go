@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -source controller.go -destination ./mock/mock_controller.go -package mock Operations
 type Operations interface {
 	Middleware() *middleware.Middleware
 	RegisterUser(ctx context.Context, user models.User) (*models.User, error)

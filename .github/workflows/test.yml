@@ -1,0 +1,25 @@
+name: ci-test
+
+on: [pull_request]
+  
+jobs:
+
+  test:
+    name : Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+   # - name: Install dependencies
+      #  run: cd backend/src && go get github.com/golang/mock/mockgen@v1.6.0 && go get github.com/99designs/gqlgen/cmd@v0.16.0
+
+    #- name: ensure go generate is not broken
+        #run: cd backend/src && go generate ./... && go mod tidy     
+
+    - name: Test
+      run: cd backend/src && go test ./...

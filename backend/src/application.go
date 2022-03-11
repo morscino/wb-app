@@ -34,6 +34,7 @@ func main() {
 	if err != nil {
 		applicationLogger.Fatal().Err(err)
 	}
+	applicationLogger.Info().Msgf("########## - DB HOST - ########### %v \n", env.Get("PG_HOST"))
 
 	postgresDB := postgres_db.New(logger, env)
 	defer postgresDB.Close()

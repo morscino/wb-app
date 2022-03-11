@@ -8,7 +8,7 @@ import (
 )
 
 // Env represents environmental variable instance
-type Env struct{}
+type Env struct{ t string }
 
 // New creates a new instance of Env and returns an error if any occurs
 func New() (*Env, error) {
@@ -16,7 +16,7 @@ func New() (*Env, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Env{}, nil
+	return &Env{t: "test"}, nil
 }
 
 // Get retrieves the string value of an environmental variable

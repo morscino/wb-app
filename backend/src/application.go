@@ -39,12 +39,14 @@ func main() {
 	defer postgresDB.Close()
 
 	r.Use(GinContextToContextMiddleware())
+	applicationLogger.Info().Msgf("########## - BEFORE MIDDLEWARE - ###########")
 	newMiddleware, err := middleware.NewMiddleware(logger, *env, postgresDB)
 	if err != nil {
 		applicationLogger.Fatal().Msgf("middleware error: %v", err)
 	}
 
 	controller := controller.New(logger, postgresDB, newMiddleware)
+	applicationLogger.Info().Msgf("########## - AFTER CONTROLLER - ###########")
 
 	r.Any("/api", h.GraphqlHandler(logger, *controller)) // grpc endpoint handler
 	r.GET("/graphql-ui", h.PlaygroundHandler())

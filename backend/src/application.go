@@ -42,6 +42,7 @@ func main() {
 	applicationLogger.Info().Msgf("########## - BEFORE MIDDLEWARE - ###########")
 	applicationLogger.Info().Msgf("########## -  ENVIRONMENT - ########### %v", env)
 	applicationLogger.Info().Msgf("########## -  DATABASE - ########### %v", postgresDB)
+
 	newMiddleware, err := middleware.NewMiddleware(logger, *env, postgresDB)
 	if err != nil {
 		applicationLogger.Fatal().Msgf("middleware error: %v", err)

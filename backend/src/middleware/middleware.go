@@ -25,7 +25,7 @@ type Middleware struct {
 	userStorage storage.UserStore
 }
 
-func NewMiddleware(z zerolog.Logger, env environment.Env, s *database.Storage) (*Middleware, error) {
+func NewMiddleware(z zerolog.Logger, env *environment.Env, s *database.Storage) (*Middleware, error) {
 	l := z.With().Str("middleware", "api").Logger()
 	paseto, err := NewPasetoMaker(env)
 	if err != nil {
@@ -35,7 +35,7 @@ func NewMiddleware(z zerolog.Logger, env environment.Env, s *database.Storage) (
 	m := &Middleware{
 		PasetoMaker: paseto,
 		logger:      l,
-		env:         &env,
+		env:         env,
 		storage:     s,
 		userStorage: *userStore,
 	}

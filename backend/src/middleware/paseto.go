@@ -44,7 +44,7 @@ func (p *Payload) Valid() error {
 	return nil
 }
 
-func NewPasetoMaker(env environment.Env) (TokenMaker, error) {
+func NewPasetoMaker(env *environment.Env) (TokenMaker, error) {
 	secretKey := env.Get("TOKEN_SECRET_KEY")
 	if len(secretKey) != chacha20poly1305.KeySize {
 		return nil, fmt.Errorf("invalid key size")

@@ -34,15 +34,11 @@ func main() {
 	if err != nil {
 		applicationLogger.Fatal().Err(err)
 	}
-	applicationLogger.Info().Msgf("########## - DB HOST - ########### %v \n", env.Get("PG_HOST"))
 
 	postgresDB := postgres_db.New(logger, env)
 	defer postgresDB.Close()
 
 	r.Use(GinContextToContextMiddleware())
-	applicationLogger.Info().Msgf("########## - BEFORE MIDDLEWARE - ###########")
-	applicationLogger.Info().Msgf("########## -  ENVIRONMENT - ########### %v", env)
-	applicationLogger.Info().Msgf("########## -  DATABASE - ########### %v", postgresDB)
 
 	newMiddleware, err := middleware.NewMiddleware(logger, env, postgresDB)
 	if err != nil {
@@ -50,7 +46,6 @@ func main() {
 	}
 
 	controller := controller.New(logger, postgresDB, newMiddleware)
-	applicationLogger.Info().Msgf("########## - AFTER CONTROLLER - ###########")
 
 	r.Any("/api", h.GraphqlHandler(logger, *controller)) // grpc endpoint handler
 	r.GET("/graphql-ui", h.PlaygroundHandler())

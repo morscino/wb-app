@@ -1,5 +1,5 @@
 backend/src/tmp
 postgres/pgdata
 backend/src/.env
-*.env-sample
+*.env
 

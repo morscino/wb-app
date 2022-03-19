@@ -1,4 +1,4 @@
-FROM golang:alpine
+FROM golang:1.17-alpine
 
 ARG app_env
 ENV APP_ENV $app_env

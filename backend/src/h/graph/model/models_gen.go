@@ -14,7 +14,24 @@ type RegisterUser struct {
 	PasswordMatch string `json:"passwordMatch"`
 }
 
+type RegisterWaitlist struct {
+	FullName     string              `json:"fullName"`
+	Email        string              `json:"email"`
+	Telephone    string              `json:"telephone"`
+	BusinessName *string             `json:"businessName"`
+	Mode         models.WaitlistMode `json:"mode"`
+}
+
 type UserAuthenticated struct {
 	Token string       `json:"token"`
 	User  *models.User `json:"user"`
+}
+
+type Waitlist struct {
+	ID           string              `json:"id"`
+	FullName     *string             `json:"fullName"`
+	BusinessName *string             `json:"businessName"`
+	Email        string              `json:"email"`
+	Telephone    string              `json:"telephone"`
+	Mode         models.WaitlistMode `json:"mode"`
 }

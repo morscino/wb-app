@@ -13,4 +13,6 @@ var ErrEnglish = map[string]error{
 	ErrIncorrectUsernameOrPassword: errors.New("incorrect username or passwordf"),
 	ErrGinContextRetrieveFailed:    errors.New("gin context retrieval failed"),
 	ErrGinContextWrongType:         errors.New("gin context wrong type"),
+	ErrInvalidPhoneNumber:          errors.New("the supplied phone number is invalid"),
+	ErrBusinessNameIsRequired:      errors.New("a business name is required for a non-individual application"),
 }

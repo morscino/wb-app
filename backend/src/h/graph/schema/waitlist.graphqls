@@ -1,0 +1,21 @@
+type Waitlist {
+    id : String!
+    fullName : String
+    businessName : String
+    email : String!
+    telephone : String!
+    mode : WaitlistMode!
+}
+
+enum WaitlistMode {
+    individual
+    business
+}
+
+input RegisterWaitlist {
+    fullName : String!
+    email : String!
+    telephone : String!
+    businessName : String
+    mode : WaitlistMode!
+}

@@ -13,6 +13,8 @@ const (
 	ErrIncorrectUsernameOrPassword string = "ErrIncorrectUsernameOrPassword"
 	ErrGinContextRetrieveFailed    string = "ErrGinContextRetrieveFailed"
 	ErrGinContextWrongType         string = "ErrGinContextWrongType"
+	ErrInvalidPhoneNumber          string = "ErrInvalidPhoneNumber"
+	ErrBusinessNameIsRequired      string = "ErrBusinessNameIsRequired"
 
 	LanguageEnglish string = "english"
 )

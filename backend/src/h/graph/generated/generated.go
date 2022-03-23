@@ -46,7 +46,8 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		RegisterUser func(childComplexity int, input model.RegisterUser) int
+		CreateWaitList func(childComplexity int, input model.RegisterWaitlist) int
+		RegisterUser   func(childComplexity int, input model.RegisterUser) int
 	}
 
 	Query struct {
@@ -66,10 +67,20 @@ type ComplexityRoot struct {
 		Token func(childComplexity int) int
 		User  func(childComplexity int) int
 	}
+
+	Waitlist struct {
+		BusinessName func(childComplexity int) int
+		Email        func(childComplexity int) int
+		FullName     func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Mode         func(childComplexity int) int
+		Telephone    func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
 	RegisterUser(ctx context.Context, input model.RegisterUser) (*models.User, error)
+	CreateWaitList(ctx context.Context, input model.RegisterWaitlist) (bool, error)
 }
 type QueryResolver interface {
 	Users(ctx context.Context) ([]*models.User, error)
@@ -93,6 +104,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.createWaitList":
+		if e.complexity.Mutation.CreateWaitList == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createWaitList_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateWaitList(childComplexity, args["input"].(model.RegisterWaitlist)), true
 
 	case "Mutation.registerUser":
 		if e.complexity.Mutation.RegisterUser == nil {
@@ -174,6 +197,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserAuthenticated.User(childComplexity), true
 
+	case "Waitlist.businessName":
+		if e.complexity.Waitlist.BusinessName == nil {
+			break
+		}
+
+		return e.complexity.Waitlist.BusinessName(childComplexity), true
+
+	case "Waitlist.email":
+		if e.complexity.Waitlist.Email == nil {
+			break
+		}
+
+		return e.complexity.Waitlist.Email(childComplexity), true
+
+	case "Waitlist.fullName":
+		if e.complexity.Waitlist.FullName == nil {
+			break
+		}
+
+		return e.complexity.Waitlist.FullName(childComplexity), true
+
+	case "Waitlist.id":
+		if e.complexity.Waitlist.ID == nil {
+			break
+		}
+
+		return e.complexity.Waitlist.ID(childComplexity), true
+
+	case "Waitlist.mode":
+		if e.complexity.Waitlist.Mode == nil {
+			break
+		}
+
+		return e.complexity.Waitlist.Mode(childComplexity), true
+
+	case "Waitlist.telephone":
+		if e.complexity.Waitlist.Telephone == nil {
+			break
+		}
+
+		return e.complexity.Waitlist.Telephone(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -240,6 +305,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
   registerUser(input: RegisterUser!): User!
+  createWaitList(input : RegisterWaitlist!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/schema/queries.graphqls", Input: `type Query {
@@ -270,12 +336,48 @@ type UserAuthenticated {
 }
 
 `, BuiltIn: false},
+	{Name: "graph/schema/waitlist.graphqls", Input: `type Waitlist {
+    id : String!
+    fullName : String
+    businessName : String
+    email : String!
+    telephone : String!
+    mode : WaitlistMode!
+}
+
+enum WaitlistMode {
+    individual
+    business
+}
+
+input RegisterWaitlist {
+    fullName : String!
+    email : String!
+    telephone : String!
+    businessName : String
+    mode : WaitlistMode!
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createWaitList_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.RegisterWaitlist
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRegisterWaitlist2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐRegisterWaitlist(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_registerUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -409,6 +511,48 @@ func (ec *executionContext) _Mutation_registerUser(ctx context.Context, field gr
 	res := resTmp.(*models.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createWaitList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createWaitList_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateWaitList(rctx, args["input"].(model.RegisterWaitlist))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -790,6 +934,210 @@ func (ec *executionContext) _UserAuthenticated_user(ctx context.Context, field g
 	res := resTmp.(*models.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waitlist_id(ctx context.Context, field graphql.CollectedField, obj *model.Waitlist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waitlist",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waitlist_fullName(ctx context.Context, field graphql.CollectedField, obj *model.Waitlist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waitlist",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waitlist_businessName(ctx context.Context, field graphql.CollectedField, obj *model.Waitlist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waitlist",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BusinessName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waitlist_email(ctx context.Context, field graphql.CollectedField, obj *model.Waitlist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waitlist",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waitlist_telephone(ctx context.Context, field graphql.CollectedField, obj *model.Waitlist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waitlist",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Telephone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Waitlist_mode(ctx context.Context, field graphql.CollectedField, obj *model.Waitlist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Waitlist",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.WaitlistMode)
+	fc.Result = res
+	return ec.marshalNWaitlistMode2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐWaitlistMode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -1969,6 +2317,61 @@ func (ec *executionContext) unmarshalInputRegisterUser(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRegisterWaitlist(ctx context.Context, obj interface{}) (model.RegisterWaitlist, error) {
+	var it model.RegisterWaitlist
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "fullName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fullName"))
+			it.FullName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "telephone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("telephone"))
+			it.Telephone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "businessName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("businessName"))
+			it.BusinessName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "mode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
+			it.Mode, err = ec.unmarshalNWaitlistMode2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐWaitlistMode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -1999,6 +2402,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "registerUser":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_registerUser(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createWaitList":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createWaitList(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -2199,6 +2612,81 @@ func (ec *executionContext) _UserAuthenticated(ctx context.Context, sel ast.Sele
 		case "user":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._UserAuthenticated_user(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var waitlistImplementors = []string{"Waitlist"}
+
+func (ec *executionContext) _Waitlist(ctx context.Context, sel ast.SelectionSet, obj *model.Waitlist) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, waitlistImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Waitlist")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waitlist_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fullName":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waitlist_fullName(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "businessName":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waitlist_businessName(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "email":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waitlist_email(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "telephone":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waitlist_telephone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "mode":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Waitlist_mode(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2661,6 +3149,11 @@ func (ec *executionContext) unmarshalNRegisterUser2githubᚗcomᚋMastoCredᚑIn
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNRegisterWaitlist2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐRegisterWaitlist(ctx context.Context, v interface{}) (model.RegisterWaitlist, error) {
+	res, err := ec.unmarshalInputRegisterWaitlist(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2746,6 +3239,22 @@ func (ec *executionContext) marshalNUserAuthenticated2ᚖgithubᚗcomᚋMastoCre
 		return graphql.Null
 	}
 	return ec._UserAuthenticated(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNWaitlistMode2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐWaitlistMode(ctx context.Context, v interface{}) (models.WaitlistMode, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := models.WaitlistMode(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNWaitlistMode2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐWaitlistMode(ctx context.Context, sel ast.SelectionSet, v models.WaitlistMode) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

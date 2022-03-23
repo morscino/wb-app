@@ -26,3 +26,8 @@ func GinContextFromContext(ctx context.Context) (*gin.Context, error) {
 
 	return gc, nil
 }
+
+func ConvertStringPointerToString(s *string) string {
+
+	return *s
+}

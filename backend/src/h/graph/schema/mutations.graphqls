@@ -1,3 +1,4 @@
 type Mutation {
   registerUser(input: RegisterUser!): User!
+  createWaitList(input : RegisterWaitlist!): Boolean!
 }

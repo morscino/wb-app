@@ -6,6 +6,16 @@ import (
 	"github.com/MastoCred-Inc/web-app/models"
 )
 
+type GetWaitlistsRequest struct {
+	Page *models.Page         `json:"page"`
+	Mode *models.WaitlistMode `json:"mode"`
+}
+
+type GetWaitlistsResult struct {
+	Page  *models.PageInfo   `json:"page"`
+	Items []*models.Waitlist `json:"items"`
+}
+
 type RegisterUser struct {
 	Email         string `json:"email"`
 	Lastname      string `json:"lastname"`
@@ -25,13 +35,4 @@ type RegisterWaitlist struct {
 type UserAuthenticated struct {
 	Token string       `json:"token"`
 	User  *models.User `json:"user"`
-}
-
-type Waitlist struct {
-	ID           string              `json:"id"`
-	FullName     *string             `json:"fullName"`
-	BusinessName *string             `json:"businessName"`
-	Email        string              `json:"email"`
-	Telephone    string              `json:"telephone"`
-	Mode         models.WaitlistMode `json:"mode"`
 }

@@ -1,4 +1,5 @@
 type Query {
   users: [User!]!
   authenticateUser(email:String!,password:String!): UserAuthenticated!
+  geAllWaitlists (input: GetWaitlistsRequest!): GetWaitlistsResult!
 }

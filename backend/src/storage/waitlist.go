@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/MastoCred-Inc/web-app/database"
@@ -14,6 +15,7 @@ import (
 type WaitlistStore interface {
 	CreateWaitList(ctx context.Context, waitlist models.Waitlist) (bool, error)
 	GetWaitlistByEmail(ctx context.Context, email string) (models.Waitlist, error)
+	GetAllWaitlists(ctx context.Context, page models.Page, mode int) ([]*models.Waitlist, *models.PageInfo, error)
 }
 
 // Waitlist objectx
@@ -53,4 +55,66 @@ func (w *Waitlist) GetWaitlistByEmail(ctx context.Context, email string) (models
 		return waitlist, language.ErrText()[language.ErrRecordNotFound]
 	}
 	return waitlist, nil
+}
+
+func (w *Waitlist) GetAllWaitlists(ctx context.Context, page models.Page, mode int) ([]*models.Waitlist, *models.PageInfo, error) {
+	var waitlists []*models.Waitlist
+	offset := 0
+	// load defaults
+	if page.Number == nil {
+		tmpPageNumber := models.PageDefaultNumber
+		page.Number = &tmpPageNumber
+	}
+	if page.Size == nil {
+		tmpPageSize := models.PageDefaultSize
+		page.Size = &tmpPageSize
+	}
+	if page.SortBy == nil {
+		tmpPageSortBy := models.PageDefaultSortBy
+		page.SortBy = &tmpPageSortBy
+	}
+	if page.SortDirectionDesc == nil {
+		tmpPageSortDirectionDesc := models.PageDefaultSortDirectionDesc
+		page.SortDirectionDesc = &tmpPageSortDirectionDesc
+	}
+
+	if *page.Number > 1 {
+		offset = *page.Size * (*page.Number - 1)
+	}
+	sortDirection := models.PageSortDirectionDescending
+	if !*page.SortDirectionDesc {
+		sortDirection = models.PageSortDirectionAscending
+	}
+
+	query := models.Waitlist{
+		Mode: mode,
+	}
+
+	queryDraft := w.storage.DB.WithContext(ctx).Model(models.Waitlist{})
+	dbCount := w.storage.DB.WithContext(ctx).Model(models.Waitlist{})
+
+	if mode > 0 {
+		queryDraft = queryDraft.Where(query)
+		dbCount = dbCount.Where(query)
+	}
+
+	db := queryDraft.Offset(offset).Limit(*page.Size).
+		Order(fmt.Sprintf("waitlists.%s %s", *page.SortBy, sortDirection)).
+		Find(&waitlists)
+	if db.Error != nil {
+		w.logger.Err(db.Error).Msgf("Waitlist::GetAllWaitlists error: %v, (%v)", language.ErrText()[language.ErrRecordNotFound], db.Error)
+		return nil, nil, language.ErrText()[language.ErrRecordNotFound]
+	}
+
+	// then do counting
+	var count int64
+	dbCount.Count(&count)
+
+	return waitlists, &models.PageInfo{
+		Page:            *page.Number,
+		Size:            *page.Size,
+		HasNextPage:     int64(offset+*page.Size) < count,
+		HasPreviousPage: *page.Number > 1,
+		TotalCount:      count,
+	}, nil
 }

@@ -5,6 +5,12 @@ type Waitlist {
     email : String!
     telephone : String!
     mode : WaitlistMode!
+    registeredAt : String
+}
+
+type GetWaitlistsResult{
+    page: PageInfo!
+    items: [Waitlist!]
 }
 
 enum WaitlistMode {
@@ -18,4 +24,9 @@ input RegisterWaitlist {
     telephone : String!
     businessName : String
     mode : WaitlistMode!
+}
+
+input GetWaitlistsRequest {
+    page :Page!
+    mode : WaitlistMode
 }

@@ -11,9 +11,11 @@ type WaitlistMode string
 const (
 	WaitListModeIndividual WaitlistMode = "individual"
 	WaitListModeBusiness   WaitlistMode = "business"
+	WaitListModeAll        WaitlistMode = "all"
 )
 
 var WaitListModeMap = map[string]int{
+	string(WaitListModeAll):        0,
 	string(WaitListModeIndividual): 1,
 	string(WaitListModeBusiness):   2,
 }

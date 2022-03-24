@@ -15,6 +15,7 @@ type Operations interface {
 	Middleware() *middleware.Middleware
 	RegisterUser(ctx context.Context, user models.User) (*models.User, error)
 	CreateWaitlist(ctx context.Context, waitlist *models.Waitlist) (bool, error)
+	GetAllWaitlists(ctx context.Context, page models.Page, mode int) ([]*models.Waitlist, *models.PageInfo, error)
 }
 
 type Controller struct {

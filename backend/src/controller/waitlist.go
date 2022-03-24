@@ -22,3 +22,7 @@ func (c *Controller) CreateWaitlist(ctx context.Context, waitlist *models.Waitli
 
 	return c.waitlistStorage.CreateWaitList(ctx, *waitlist)
 }
+
+func (c *Controller) GetAllWaitlists(ctx context.Context, page models.Page, mode int) ([]*models.Waitlist, *models.PageInfo, error) {
+	return c.waitlistStorage.GetAllWaitlists(ctx, page, mode)
+}

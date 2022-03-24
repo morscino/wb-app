@@ -1,0 +1,18 @@
+scalar Upload
+
+# Information for paginating this connection
+type PageInfo {
+    page: Int!
+    size: Int!
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    totalCount: Int!
+}
+
+
+input Page {
+    number: Int!,
+    size: Int!,
+    sortBy: String, # sort by e.g created_at or name
+    sortDirectionDesc: Boolean # sort direction Descending. Default is true
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/MastoCred-Inc/web-app/language"
+	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,6 +29,10 @@ func GinContextFromContext(ctx context.Context) (*gin.Context, error) {
 }
 
 func ConvertStringPointerToString(s *string) string {
-
 	return *s
+}
+
+func ConvertModeToIntPointer(s string) int {
+	i := models.WaitListModeMap[s]
+	return i
 }

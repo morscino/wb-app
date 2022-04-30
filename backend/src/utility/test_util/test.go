@@ -16,7 +16,6 @@ func NewTestUser() models.User {
 		Email:     "test@email.com",
 		Password:  "somepassword",
 		Salt:      "some$alt",
-		Username:  "username",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

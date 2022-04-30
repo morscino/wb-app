@@ -2,6 +2,7 @@ package graph
 
 import (
 	"github.com/MastoCred-Inc/web-app/controller"
+	"github.com/MastoCred-Inc/web-app/utility/environment"
 	"github.com/rs/zerolog"
 )
 
@@ -13,13 +14,15 @@ import (
 
 type Resolver struct {
 	logger     zerolog.Logger
+	env        *environment.Env
 	controller controller.Operations
 }
 
 // New created a new instance of Resolver
-func New(l zerolog.Logger, c controller.Operations) *Resolver {
+func New(l zerolog.Logger, c controller.Operations, env *environment.Env) *Resolver {
 	return &Resolver{
 		logger:     l,
 		controller: c,
+		env:        env,
 	}
 }

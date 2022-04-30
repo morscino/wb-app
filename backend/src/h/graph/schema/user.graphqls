@@ -3,7 +3,19 @@ type User {
   firstname: String
   lastname: String
   email: String
-  username: String
+  userType : String
+  association : Association
+  associationBranch : String
+  businessName : String
+	businessRegistrationDate : String
+	businessRCNumber  : String
+	occupation : String
+	salaryRange : String
+	dateOfBirth : String
+	maritalStatus : String
+	meansOfIdentification : String
+  profilePicture : String
+  documentURL : String
 }
 
 input RegisterUser {
@@ -12,12 +24,56 @@ input RegisterUser {
   firstname : String!
   password: String!
   passwordMatch : String!
+  phoneNumber : String!
+  userType : UserTypeEnum!
+  associationID : String
+  associationBranch : String
+	businessName : String
+	businessRegistrationDate : String
+	businessRCNumber  : String
 }
 
-
+input UpdateUserRequest {
+  id : String!
+  lastname : String
+  firstname : String
+  phoneNumber : String
+  associationID : String
+  associationBranch : String
+	businessName : String
+	businessRegistrationDate : String
+	businessRCNumber  : String
+	occupation : String
+	salaryRange : String
+	dateOfBirth : String
+	maritalStatus : UserMaritalStatus
+	meansOfIdentification : UserMeansOfIdentification
+  profilePictureFile : Upload
+  documentFile : Upload
+}
 
 type UserAuthenticated {
   token : String!
   user : User!
 }
 
+enum UserTypeEnum {
+    individual
+    sme
+    admin
+    super_admin
+    group
+}
+
+enum UserMaritalStatus {
+  single
+  divorced
+  engaged
+  married
+}
+
+enum UserMeansOfIdentification {
+    drivers_license
+    NIN
+    intl_passport
+}

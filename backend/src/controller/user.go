@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	"github.com/MastoCred-Inc/web-app/language"
 	"github.com/MastoCred-Inc/web-app/models"
@@ -29,12 +30,23 @@ func (c *Controller) RegisterUser(ctx context.Context, u models.User) (*models.U
 
 	u.Salt = salt
 	u.Password = encryptedPassword
-	u.Username = salt // temporary value, to be handled later
 
 	// send data to the storage
 	user, err := c.userStorage.RegisterUser(ctx, u)
 	if err != nil {
 		c.logger.Err(err).Msgf("RegisterUser:RegisterUser [%v] : (%v)", u.Email, err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (c *Controller) UpdateUserByID(ctx context.Context, u models.User) (*models.User, error) {
+
+	u.UpdatedAt = time.Now()
+	user, err := c.userStorage.UpdateUserByID(ctx, u.ID, u)
+
+	if err != nil {
 		return nil, err
 	}
 

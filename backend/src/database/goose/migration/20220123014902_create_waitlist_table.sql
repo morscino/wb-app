@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-create table waitlists
+create table if NOT exists waitlists
 (
 	id uuid
 		constraint waitlists_pk

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"strings"
 
 	"github.com/MastoCred-Inc/web-app/database"
 	graphQLmodel "github.com/MastoCred-Inc/web-app/h/graph/model"
@@ -9,7 +10,12 @@ import (
 	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/MastoCred-Inc/web-app/storage"
 	"github.com/MastoCred-Inc/web-app/utility/environment"
+	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+)
+
+const (
+	authorizationHeader = "authorization"
 )
 
 type TokenMaker interface {
@@ -42,6 +48,30 @@ func NewMiddleware(z zerolog.Logger, env *environment.Env, s *database.Storage) 
 	return m, nil
 }
 
+// PasetoUserAuth hybrid middleware returns an authorized user
+func (m *Middleware) PasetoUserAuth(c *gin.Context) (*models.User, error) {
+	authorization := c.GetHeader(authorizationHeader)
+	if len(authorization) < 0 {
+		return nil, language.ErrText()[language.ErrInvalidToken]
+	}
+
+	fields := strings.Fields(authorization)
+	if len(fields) != 2 {
+		return nil, language.ErrText()[language.ErrInvalidToken]
+	}
+	claims, err := m.PasetoMaker.VerifyToken(fields[1])
+	if err != nil {
+		return nil, err
+	}
+	user, err := m.userStorage.GetUserByEmail(c, claims.Email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (m *Middleware) AuthenticateUser(ctx context.Context, email, password string) (*graphQLmodel.UserAuthenticated, error) {
 	// check if user exists
 	user, err := m.userStorage.GetUserByEmail(ctx, email)
@@ -58,11 +88,14 @@ func (m *Middleware) AuthenticateUser(ctx context.Context, email, password strin
 	authUser := &graphQLmodel.UserAuthenticated{
 		Token: token,
 		User: &models.User{
-			ID:        user.ID,
-			LastName:  user.LastName,
-			FirstName: user.FirstName,
-			Email:     user.Email,
-			CreatedAt: user.CreatedAt,
+			ID:                user.ID,
+			LastName:          user.LastName,
+			FirstName:         user.FirstName,
+			Email:             user.Email,
+			CreatedAt:         user.CreatedAt,
+			UserType:          user.UserType,
+			AssociationID:     user.AssociationID,
+			AssociationBranch: user.AssociationBranch,
 		},
 	}
 	return authUser, nil

@@ -1,0 +1,24 @@
+type Loan {
+  id: ID!
+  paybackDuration : String
+  period : String
+  otherLoansAmount : String
+  loanAmount : String
+  monthlyRepayment : String
+  monthlyInterestRate : String
+  accountNumber : String
+  accountName : String
+  bank : String
+  processingFee : String
+  status : String
+}
+
+input ApplyLoanRequest {
+    paybackDuration : String!
+    otherLoansAmount : String!
+    loanAmount : String!
+    monthlyRepayment : String!
+    accountNumber : String!
+    accountName : String!
+    bank : String!
+}

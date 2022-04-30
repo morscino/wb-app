@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var userTableColumns = []string{"last_name", "first_name", "email", "password", "salt", "username", "created_at", "updated_at", "id"}
+var userTableColumns = []string{"last_name", "first_name", "email", "password", "salt", "created_at", "updated_at", "id"}
 
 func (s *Suite) TestRegisterUser() {
 	testUser := test_util.NewTestUser()
@@ -17,7 +17,7 @@ func (s *Suite) TestRegisterUser() {
 	s.mock.ExpectBegin()
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users" ("last_name","first_name","email","password","salt","username","created_at","updated_at","id")
 	 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`)).
-		WithArgs(testUser.LastName, testUser.FirstName, testUser.Email, testUser.Password, testUser.Salt, testUser.Username, testUser.CreatedAt, testUser.UpdatedAt, testUser.ID).
+		WithArgs(testUser.LastName, testUser.FirstName, testUser.Email, testUser.Password, testUser.Salt, testUser.CreatedAt, testUser.UpdatedAt, testUser.ID).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id"}).
 				AddRow(testUser.ID),
@@ -35,7 +35,7 @@ func (s *Suite) TestGetUserByEmail() {
 		`SELECT * FROM "users" WHERE email = $1`)).
 		WithArgs(testUser.Email).
 		WillReturnRows(sqlmock.NewRows(userTableColumns).
-			AddRow(testUser.LastName, testUser.FirstName, testUser.Email, testUser.Password, testUser.Salt, testUser.Username, testUser.CreatedAt, testUser.UpdatedAt, testUser.ID))
+			AddRow(testUser.LastName, testUser.FirstName, testUser.Email, testUser.Password, testUser.Salt, testUser.CreatedAt, testUser.UpdatedAt, testUser.ID))
 
 	retUser, err := s.userDatabase.GetUserByEmail(context.Background(), testUser.Email)
 

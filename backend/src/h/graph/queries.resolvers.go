@@ -46,7 +46,23 @@ func (r *queryResolver) GeAllWaitlists(ctx context.Context, input model.GetWaitl
 		Items: waitlists,
 		Page:  page,
 	}, nil
+}
 
+func (r *queryResolver) GetAllAssociations(ctx context.Context, input model.GetAssociationsRequest) (*model.GetAssociationsResult, error) {
+	ginC, err := helper.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	associations, page, err := r.controller.GetAllAssociations(ginC, *input.Page)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.GetAssociationsResult{
+		Items: associations,
+		Page:  page,
+	}, nil
 }
 
 // Query returns generated.QueryResolver implementation.

@@ -47,7 +47,7 @@ func main() {
 
 	controller := controller.New(logger, postgresDB, newMiddleware)
 
-	r.Any("/api", h.GraphqlHandler(logger, *controller)) // grpc endpoint handler
+	r.Any("/api", h.GraphqlHandler(logger, *controller, env)) // grpc endpoint handler
 	r.GET("/graphql-ui", h.PlaygroundHandler())
 
 	r.GET("/", func(c *gin.Context) {

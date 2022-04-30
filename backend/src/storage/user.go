@@ -7,6 +7,7 @@ import (
 	"github.com/MastoCred-Inc/web-app/database"
 	"github.com/MastoCred-Inc/web-app/language"
 	"github.com/MastoCred-Inc/web-app/models"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
 
@@ -14,9 +15,10 @@ import (
 type UserStore interface {
 	RegisterUser(ctx context.Context, user models.User) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+	UpdateUserByID(ctx context.Context, id uuid.UUID, user models.User) (models.User, error)
 }
 
-// User objectx
+// User object
 type User struct {
 	logger  zerolog.Logger
 	storage *database.Storage
@@ -54,5 +56,41 @@ func (u *User) GetUserByEmail(ctx context.Context, email string) (models.User, e
 		u.logger.Err(db.Error).Msgf("User::GetUserByEmail error: %v, (%v)", language.ErrText()[language.ErrRecordNotFound], db.Error)
 		return user, language.ErrText()[language.ErrRecordNotFound]
 	}
+	return user, nil
+}
+
+// UpdateByID should update the user record in the storage
+func (u *User) UpdateUserByID(ctx context.Context, id uuid.UUID, user models.User) (models.User, error) {
+	db := u.storage.DB.WithContext(ctx).Model(models.User{
+		ID: id,
+	}).UpdateColumns(models.User{
+		FirstName:                user.FirstName,
+		Email:                    user.Email,
+		Telephone:                user.Telephone,
+		Password:                 user.Password,
+		Salt:                     user.Salt,
+		UserType:                 user.UserType,
+		AssociationID:            user.AssociationID,
+		AssociationBranch:        user.AssociationBranch,
+		BusinessName:             user.BusinessName,
+		BusinessRegistrationDate: user.BusinessRegistrationDate,
+		BusinessRCNumber:         user.BusinessRCNumber,
+		Occupation:               user.Occupation,
+		SalaryRange:              user.SalaryRange,
+		DateOfBirth:              user.DateOfBirth,
+		MaritalStatus:            user.MaritalStatus,
+		MeansOfIdentification:    user.MeansOfIdentification,
+		ProfilePictureURL:        user.ProfilePictureURL,
+		DocumentURL:              user.DocumentURL,
+
+		UpdatedAt: user.UpdatedAt, //disabled hooks and manually adding updatedAt here by self
+
+	})
+	if db.Error != nil {
+		u.logger.Err(db.Error).Msgf("User::UpdateByID error: %v, (%v)", language.ErrText()[language.ErrRecordUpdateFailed], db.Error)
+		return user, language.ErrText()[language.ErrRecordUpdateFailed]
+	}
+	user.ID = id
+
 	return user, nil
 }

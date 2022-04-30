@@ -8,10 +8,52 @@ import (
 
 	"github.com/MastoCred-Inc/web-app/h/graph/generated"
 	"github.com/MastoCred-Inc/web-app/models"
+	"github.com/google/uuid"
 )
 
 func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error) {
 	return obj.ID.String(), nil
+}
+
+func (r *userResolver) UserType(ctx context.Context, obj *models.User) (*string, error) {
+	u := models.UserTypeMap[models.UserType(obj.UserType)]
+
+	return &u, nil
+}
+
+func (r *userResolver) Association(ctx context.Context, obj *models.User) (*models.Association, error) {
+	var assocID uuid.UUID
+
+	if obj.AssociationID != nil {
+		assocID = *obj.AssociationID
+	}
+	assoc, err := r.controller.GetAssociationById(ctx, assocID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &assoc, nil
+}
+
+func (r *userResolver) BusinessRegistrationDate(ctx context.Context, obj *models.User) (*string, error) {
+	b := obj.BusinessRegistrationDate.Time.String()
+	return &b, nil
+}
+
+func (r *userResolver) DateOfBirth(ctx context.Context, obj *models.User) (*string, error) {
+	d := obj.DateOfBirth.Time.String()
+	return &d, nil
+}
+
+func (r *userResolver) MeansOfIdentification(ctx context.Context, obj *models.User) (*string, error) {
+	m := models.MeansOfIdentificationMap[models.MeansOfIdentification(*obj.MeansOfIdentification)]
+
+	return &m, nil
+}
+
+func (r *userResolver) ProfilePicture(ctx context.Context, obj *models.User) (*string, error) {
+	return obj.ProfilePictureURL, nil
 }
 
 // User returns generated.UserResolver implementation.

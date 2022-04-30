@@ -1,4 +1,14 @@
 type Mutation {
+  # User
   registerUser(input: RegisterUser!): User!
+  updateUser(input: UpdateUserRequest!) : User!
+
+  # Association
+  registerAssociation(name: String!): Association!
+
+  # Waitlist
   createWaitList(input : RegisterWaitlist!): Boolean!
+
+  # Loan
+  applyLoan(input : ApplyLoanRequest!) : Loan!
 }

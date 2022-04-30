@@ -1,0 +1,13 @@
+type Association {
+    id : ID!
+    name : String
+}
+
+type GetAssociationsResult{
+    page: PageInfo!
+    items: [Association!]
+}
+
+input GetAssociationsRequest {
+    page :Page!
+}

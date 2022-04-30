@@ -3,8 +3,32 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/MastoCred-Inc/web-app/models"
 )
+
+type ApplyLoanRequest struct {
+	Payback          string `json:"payback"`
+	OtherLoansAmount string `json:"otherLoansAmount"`
+	LoanAmount       string `json:"loanAmount"`
+	MonthlyRepayment string `json:"monthlyRepayment"`
+	AccountNumber    string `json:"accountNumber"`
+	AccountName      string `json:"accountName"`
+	Bank             string `json:"bank"`
+}
+
+type GetAssociationsRequest struct {
+	Page *models.Page `json:"page"`
+}
+
+type GetAssociationsResult struct {
+	Page  *models.PageInfo      `json:"page"`
+	Items []*models.Association `json:"items"`
+}
 
 type GetWaitlistsRequest struct {
 	Page *models.Page         `json:"page"`
@@ -17,11 +41,18 @@ type GetWaitlistsResult struct {
 }
 
 type RegisterUser struct {
-	Email         string `json:"email"`
-	Lastname      string `json:"lastname"`
-	Firstname     string `json:"firstname"`
-	Password      string `json:"password"`
-	PasswordMatch string `json:"passwordMatch"`
+	Email                    string       `json:"email"`
+	Lastname                 string       `json:"lastname"`
+	Firstname                string       `json:"firstname"`
+	Password                 string       `json:"password"`
+	PasswordMatch            string       `json:"passwordMatch"`
+	PhoneNumber              string       `json:"phoneNumber"`
+	UserType                 UserTypeEnum `json:"userType"`
+	AssociationID            *string      `json:"associationID"`
+	AssociationBranch        *string      `json:"associationBranch"`
+	BusinessName             *string      `json:"businessName"`
+	BusinessRegistrationDate *string      `json:"businessRegistrationDate"`
+	BusinessRCNumber         *string      `json:"businessRCNumber"`
 }
 
 type RegisterWaitlist struct {
@@ -32,7 +63,161 @@ type RegisterWaitlist struct {
 	Mode         models.WaitlistMode `json:"mode"`
 }
 
+type UpdateUserRequest struct {
+	ID                       string                     `json:"id"`
+	Lastname                 *string                    `json:"lastname"`
+	Firstname                *string                    `json:"firstname"`
+	PhoneNumber              *string                    `json:"phoneNumber"`
+	AssociationID            *string                    `json:"associationID"`
+	AssociationBranch        *string                    `json:"associationBranch"`
+	BusinessName             *string                    `json:"businessName"`
+	BusinessRegistrationDate *string                    `json:"businessRegistrationDate"`
+	BusinessRCNumber         *string                    `json:"businessRCNumber"`
+	Occupation               *string                    `json:"occupation"`
+	SalaryRange              *string                    `json:"salaryRange"`
+	DateOfBirth              *string                    `json:"dateOfBirth"`
+	MaritalStatus            *UserMaritalStatus         `json:"maritalStatus"`
+	MeansOfIdentification    *UserMeansOfIdentification `json:"meansOfIdentification"`
+	ProfilePictureFile       *graphql.Upload            `json:"profilePictureFile"`
+	DocumentFile             *graphql.Upload            `json:"documentFile"`
+}
+
 type UserAuthenticated struct {
 	Token string       `json:"token"`
 	User  *models.User `json:"user"`
+}
+
+type UserMaritalStatus string
+
+const (
+	UserMaritalStatusSingle   UserMaritalStatus = "single"
+	UserMaritalStatusDivorced UserMaritalStatus = "divorced"
+	UserMaritalStatusEngaged  UserMaritalStatus = "engaged"
+	UserMaritalStatusMarried  UserMaritalStatus = "married"
+)
+
+var AllUserMaritalStatus = []UserMaritalStatus{
+	UserMaritalStatusSingle,
+	UserMaritalStatusDivorced,
+	UserMaritalStatusEngaged,
+	UserMaritalStatusMarried,
+}
+
+func (e UserMaritalStatus) IsValid() bool {
+	switch e {
+	case UserMaritalStatusSingle, UserMaritalStatusDivorced, UserMaritalStatusEngaged, UserMaritalStatusMarried:
+		return true
+	}
+	return false
+}
+
+func (e UserMaritalStatus) String() string {
+	return string(e)
+}
+
+func (e *UserMaritalStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UserMaritalStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UserMaritalStatus", str)
+	}
+	return nil
+}
+
+func (e UserMaritalStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type UserMeansOfIdentification string
+
+const (
+	UserMeansOfIdentificationDriversLicense UserMeansOfIdentification = "drivers_license"
+	UserMeansOfIdentificationNin            UserMeansOfIdentification = "NIN"
+	UserMeansOfIdentificationIntlPassport   UserMeansOfIdentification = "intl_passport"
+)
+
+var AllUserMeansOfIdentification = []UserMeansOfIdentification{
+	UserMeansOfIdentificationDriversLicense,
+	UserMeansOfIdentificationNin,
+	UserMeansOfIdentificationIntlPassport,
+}
+
+func (e UserMeansOfIdentification) IsValid() bool {
+	switch e {
+	case UserMeansOfIdentificationDriversLicense, UserMeansOfIdentificationNin, UserMeansOfIdentificationIntlPassport:
+		return true
+	}
+	return false
+}
+
+func (e UserMeansOfIdentification) String() string {
+	return string(e)
+}
+
+func (e *UserMeansOfIdentification) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UserMeansOfIdentification(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UserMeansOfIdentification", str)
+	}
+	return nil
+}
+
+func (e UserMeansOfIdentification) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type UserTypeEnum string
+
+const (
+	UserTypeEnumIndividual UserTypeEnum = "individual"
+	UserTypeEnumSme        UserTypeEnum = "sme"
+	UserTypeEnumAdmin      UserTypeEnum = "admin"
+	UserTypeEnumSuperAdmin UserTypeEnum = "super_admin"
+	UserTypeEnumGroup      UserTypeEnum = "group"
+)
+
+var AllUserTypeEnum = []UserTypeEnum{
+	UserTypeEnumIndividual,
+	UserTypeEnumSme,
+	UserTypeEnumAdmin,
+	UserTypeEnumSuperAdmin,
+	UserTypeEnumGroup,
+}
+
+func (e UserTypeEnum) IsValid() bool {
+	switch e {
+	case UserTypeEnumIndividual, UserTypeEnumSme, UserTypeEnumAdmin, UserTypeEnumSuperAdmin, UserTypeEnumGroup:
+		return true
+	}
+	return false
+}
+
+func (e UserTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *UserTypeEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UserTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UserTypeEnum", str)
+	}
+	return nil
+}
+
+func (e UserTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

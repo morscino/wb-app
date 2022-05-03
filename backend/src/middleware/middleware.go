@@ -96,6 +96,7 @@ func (m *Middleware) AuthenticateUser(ctx context.Context, email, password strin
 			UserType:          user.UserType,
 			AssociationID:     user.AssociationID,
 			AssociationBranch: user.AssociationBranch,
+			Salary:            user.Salary,
 		},
 	}
 	return authUser, nil

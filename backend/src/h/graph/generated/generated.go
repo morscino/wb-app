@@ -58,31 +58,44 @@ type ComplexityRoot struct {
 		Page  func(childComplexity int) int
 	}
 
+	GetLoansResult struct {
+		Items func(childComplexity int) int
+		Page  func(childComplexity int) int
+	}
+
+	GetUsersResult struct {
+		Items func(childComplexity int) int
+		Page  func(childComplexity int) int
+	}
+
 	GetWaitlistsResult struct {
 		Items func(childComplexity int) int
 		Page  func(childComplexity int) int
 	}
 
 	Loan struct {
-		AccountName         func(childComplexity int) int
-		AccountNumber       func(childComplexity int) int
-		Bank                func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		LoanAmount          func(childComplexity int) int
-		MonthlyInterestRate func(childComplexity int) int
-		MonthlyRepayment    func(childComplexity int) int
-		OtherLoansAmount    func(childComplexity int) int
-		Payback             func(childComplexity int) int
-		ProcessingFee       func(childComplexity int) int
-		Status              func(childComplexity int) int
+		AccountName       func(childComplexity int) int
+		AccountNumber     func(childComplexity int) int
+		AmountPaid        func(childComplexity int) int
+		Balance           func(childComplexity int) int
+		Bank              func(childComplexity int) int
+		ID                func(childComplexity int) int
+		LoanAmount        func(childComplexity int) int
+		LoanApprovalDate  func(childComplexity int) int
+		OtherLoansAmount  func(childComplexity int) int
+		Repayment         func(childComplexity int) int
+		RepaymentDates    func(childComplexity int) int
+		RepaymentDuration func(childComplexity int) int
+		RepaymentStatus   func(childComplexity int) int
+		Status            func(childComplexity int) int
 	}
 
 	Mutation struct {
-		ApplyLoan           func(childComplexity int, input model.ApplyLoanRequest) int
 		CreateWaitList      func(childComplexity int, input model.RegisterWaitlist) int
+		LoanApplication     func(childComplexity int, input model.LoanApplicationRequest) int
 		RegisterAssociation func(childComplexity int, name string) int
 		RegisterUser        func(childComplexity int, input model.RegisterUser) int
-		UpdateUser          func(childComplexity int, input model.UpdateUserRequest) int
+		UserKyc             func(childComplexity int, input model.UserKYCRequest) int
 	}
 
 	PageInfo struct {
@@ -97,12 +110,14 @@ type ComplexityRoot struct {
 		AuthenticateUser   func(childComplexity int, email string, password string) int
 		GeAllWaitlists     func(childComplexity int, input model.GetWaitlistsRequest) int
 		GetAllAssociations func(childComplexity int, input model.GetAssociationsRequest) int
-		Users              func(childComplexity int) int
+		GetAllLoans        func(childComplexity int, page models.Page) int
+		GetAllUsers        func(childComplexity int, page models.Page) int
 	}
 
 	User struct {
 		Association              func(childComplexity int) int
 		AssociationBranch        func(childComplexity int) int
+		BVN                      func(childComplexity int) int
 		BusinessName             func(childComplexity int) int
 		BusinessRCNumber         func(childComplexity int) int
 		BusinessRegistrationDate func(childComplexity int) int
@@ -112,11 +127,13 @@ type ComplexityRoot struct {
 		FirstName                func(childComplexity int) int
 		ID                       func(childComplexity int) int
 		LastName                 func(childComplexity int) int
+		LocalGovernment          func(childComplexity int) int
 		MaritalStatus            func(childComplexity int) int
 		MeansOfIdentification    func(childComplexity int) int
 		Occupation               func(childComplexity int) int
 		ProfilePicture           func(childComplexity int) int
-		SalaryRange              func(childComplexity int) int
+		Salary                   func(childComplexity int) int
+		State                    func(childComplexity int) int
 		UserType                 func(childComplexity int) int
 	}
 
@@ -141,26 +158,25 @@ type AssociationResolver interface {
 }
 type LoanResolver interface {
 	ID(ctx context.Context, obj *models.Loan) (string, error)
-	Payback(ctx context.Context, obj *models.Loan) (*string, error)
-	OtherLoansAmount(ctx context.Context, obj *models.Loan) (*string, error)
-	LoanAmount(ctx context.Context, obj *models.Loan) (*string, error)
-	MonthlyRepayment(ctx context.Context, obj *models.Loan) (*string, error)
-	MonthlyInterestRate(ctx context.Context, obj *models.Loan) (*string, error)
+	RepaymentDuration(ctx context.Context, obj *models.Loan) (*string, error)
 
-	ProcessingFee(ctx context.Context, obj *models.Loan) (*string, error)
+	RepaymentDates(ctx context.Context, obj *models.Loan) ([]*string, error)
+
+	LoanApprovalDate(ctx context.Context, obj *models.Loan) (*string, error)
 }
 type MutationResolver interface {
 	RegisterUser(ctx context.Context, input model.RegisterUser) (*models.User, error)
-	UpdateUser(ctx context.Context, input model.UpdateUserRequest) (*models.User, error)
+	UserKyc(ctx context.Context, input model.UserKYCRequest) (*models.User, error)
 	RegisterAssociation(ctx context.Context, name string) (*models.Association, error)
 	CreateWaitList(ctx context.Context, input model.RegisterWaitlist) (bool, error)
-	ApplyLoan(ctx context.Context, input model.ApplyLoanRequest) (*models.Loan, error)
+	LoanApplication(ctx context.Context, input model.LoanApplicationRequest) (*models.Loan, error)
 }
 type QueryResolver interface {
-	Users(ctx context.Context) ([]*models.User, error)
+	GetAllUsers(ctx context.Context, page models.Page) (*model.GetUsersResult, error)
 	AuthenticateUser(ctx context.Context, email string, password string) (*model.UserAuthenticated, error)
 	GeAllWaitlists(ctx context.Context, input model.GetWaitlistsRequest) (*model.GetWaitlistsResult, error)
 	GetAllAssociations(ctx context.Context, input model.GetAssociationsRequest) (*model.GetAssociationsResult, error)
+	GetAllLoans(ctx context.Context, page models.Page) (*model.GetLoansResult, error)
 }
 type UserResolver interface {
 	ID(ctx context.Context, obj *models.User) (string, error)
@@ -225,6 +241,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GetAssociationsResult.Page(childComplexity), true
 
+	case "GetLoansResult.items":
+		if e.complexity.GetLoansResult.Items == nil {
+			break
+		}
+
+		return e.complexity.GetLoansResult.Items(childComplexity), true
+
+	case "GetLoansResult.page":
+		if e.complexity.GetLoansResult.Page == nil {
+			break
+		}
+
+		return e.complexity.GetLoansResult.Page(childComplexity), true
+
+	case "GetUsersResult.items":
+		if e.complexity.GetUsersResult.Items == nil {
+			break
+		}
+
+		return e.complexity.GetUsersResult.Items(childComplexity), true
+
+	case "GetUsersResult.page":
+		if e.complexity.GetUsersResult.Page == nil {
+			break
+		}
+
+		return e.complexity.GetUsersResult.Page(childComplexity), true
+
 	case "GetWaitlistsResult.items":
 		if e.complexity.GetWaitlistsResult.Items == nil {
 			break
@@ -253,6 +297,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Loan.AccountNumber(childComplexity), true
 
+	case "Loan.amountPaid":
+		if e.complexity.Loan.AmountPaid == nil {
+			break
+		}
+
+		return e.complexity.Loan.AmountPaid(childComplexity), true
+
+	case "Loan.balance":
+		if e.complexity.Loan.Balance == nil {
+			break
+		}
+
+		return e.complexity.Loan.Balance(childComplexity), true
+
 	case "Loan.bank":
 		if e.complexity.Loan.Bank == nil {
 			break
@@ -274,19 +332,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Loan.LoanAmount(childComplexity), true
 
-	case "Loan.monthlyInterestRate":
-		if e.complexity.Loan.MonthlyInterestRate == nil {
+	case "Loan.loanApprovalDate":
+		if e.complexity.Loan.LoanApprovalDate == nil {
 			break
 		}
 
-		return e.complexity.Loan.MonthlyInterestRate(childComplexity), true
-
-	case "Loan.monthlyRepayment":
-		if e.complexity.Loan.MonthlyRepayment == nil {
-			break
-		}
-
-		return e.complexity.Loan.MonthlyRepayment(childComplexity), true
+		return e.complexity.Loan.LoanApprovalDate(childComplexity), true
 
 	case "Loan.otherLoansAmount":
 		if e.complexity.Loan.OtherLoansAmount == nil {
@@ -295,19 +346,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Loan.OtherLoansAmount(childComplexity), true
 
-	case "Loan.payback":
-		if e.complexity.Loan.Payback == nil {
+	case "Loan.repayment":
+		if e.complexity.Loan.Repayment == nil {
 			break
 		}
 
-		return e.complexity.Loan.Payback(childComplexity), true
+		return e.complexity.Loan.Repayment(childComplexity), true
 
-	case "Loan.processingFee":
-		if e.complexity.Loan.ProcessingFee == nil {
+	case "Loan.repaymentDates":
+		if e.complexity.Loan.RepaymentDates == nil {
 			break
 		}
 
-		return e.complexity.Loan.ProcessingFee(childComplexity), true
+		return e.complexity.Loan.RepaymentDates(childComplexity), true
+
+	case "Loan.repaymentDuration":
+		if e.complexity.Loan.RepaymentDuration == nil {
+			break
+		}
+
+		return e.complexity.Loan.RepaymentDuration(childComplexity), true
+
+	case "Loan.repaymentStatus":
+		if e.complexity.Loan.RepaymentStatus == nil {
+			break
+		}
+
+		return e.complexity.Loan.RepaymentStatus(childComplexity), true
 
 	case "Loan.status":
 		if e.complexity.Loan.Status == nil {
@@ -315,18 +380,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Loan.Status(childComplexity), true
-
-	case "Mutation.applyLoan":
-		if e.complexity.Mutation.ApplyLoan == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_applyLoan_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ApplyLoan(childComplexity, args["input"].(model.ApplyLoanRequest)), true
 
 	case "Mutation.createWaitList":
 		if e.complexity.Mutation.CreateWaitList == nil {
@@ -339,6 +392,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateWaitList(childComplexity, args["input"].(model.RegisterWaitlist)), true
+
+	case "Mutation.loanApplication":
+		if e.complexity.Mutation.LoanApplication == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_loanApplication_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.LoanApplication(childComplexity, args["input"].(model.LoanApplicationRequest)), true
 
 	case "Mutation.registerAssociation":
 		if e.complexity.Mutation.RegisterAssociation == nil {
@@ -364,17 +429,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RegisterUser(childComplexity, args["input"].(model.RegisterUser)), true
 
-	case "Mutation.updateUser":
-		if e.complexity.Mutation.UpdateUser == nil {
+	case "Mutation.userKYC":
+		if e.complexity.Mutation.UserKyc == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_userKYC_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserRequest)), true
+		return e.complexity.Mutation.UserKyc(childComplexity, args["input"].(model.UserKYCRequest)), true
 
 	case "PageInfo.hasNextPage":
 		if e.complexity.PageInfo.HasNextPage == nil {
@@ -447,12 +512,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllAssociations(childComplexity, args["input"].(model.GetAssociationsRequest)), true
 
-	case "Query.users":
-		if e.complexity.Query.Users == nil {
+	case "Query.getAllLoans":
+		if e.complexity.Query.GetAllLoans == nil {
 			break
 		}
 
-		return e.complexity.Query.Users(childComplexity), true
+		args, err := ec.field_Query_getAllLoans_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllLoans(childComplexity, args["page"].(models.Page)), true
+
+	case "Query.getAllUsers":
+		if e.complexity.Query.GetAllUsers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getAllUsers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllUsers(childComplexity, args["page"].(models.Page)), true
 
 	case "User.association":
 		if e.complexity.User.Association == nil {
@@ -467,6 +549,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.AssociationBranch(childComplexity), true
+
+	case "User.bvn":
+		if e.complexity.User.BVN == nil {
+			break
+		}
+
+		return e.complexity.User.BVN(childComplexity), true
 
 	case "User.businessName":
 		if e.complexity.User.BusinessName == nil {
@@ -531,6 +620,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.LastName(childComplexity), true
 
+	case "User.localGovernment":
+		if e.complexity.User.LocalGovernment == nil {
+			break
+		}
+
+		return e.complexity.User.LocalGovernment(childComplexity), true
+
 	case "User.maritalStatus":
 		if e.complexity.User.MaritalStatus == nil {
 			break
@@ -559,12 +655,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ProfilePicture(childComplexity), true
 
-	case "User.salaryRange":
-		if e.complexity.User.SalaryRange == nil {
+	case "User.salary":
+		if e.complexity.User.Salary == nil {
 			break
 		}
 
-		return e.complexity.User.SalaryRange(childComplexity), true
+		return e.complexity.User.Salary(childComplexity), true
+
+	case "User.state":
+		if e.complexity.User.State == nil {
+			break
+		}
+
+		return e.complexity.User.State(childComplexity), true
 
 	case "User.userType":
 		if e.complexity.User.UserType == nil {
@@ -715,32 +818,40 @@ input GetAssociationsRequest {
 }`, BuiltIn: false},
 	{Name: "graph/schema/loan.graphqls", Input: `type Loan {
   id: ID!
-  payback : String
-  otherLoansAmount : String
-  loanAmount : String
-  monthlyRepayment : String
-  monthlyInterestRate : String
+  repaymentDuration : String
+  otherLoansAmount : Float
+  loanAmount : Float
+  repayment : Float
+  amountPaid : Float
+  repaymentDates : [String]
   accountNumber : String
   accountName : String
   bank : String
-  processingFee : String
   status : String
+  repaymentStatus : String
+  balance : Float
+  loanApprovalDate : String
 }
 
-input ApplyLoanRequest {
-    payback : String!
-  otherLoansAmount : String!
-  loanAmount : String!
-  monthlyRepayment : String!
-  accountNumber : String!
-  accountName : String!
-  bank : String!
+input LoanApplicationRequest {
+    repaymentDuration : Float!
+    otherLoansAmount : Float!
+    loanAmount : Float!
+    accountNumber : String!
+    accountName : String!
+    bank : String!
 }
+
+type GetLoansResult{
+    page: PageInfo!
+    items: [Loan!]
+}
+
 `, BuiltIn: false},
 	{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
   # User
   registerUser(input: RegisterUser!): User!
-  updateUser(input: UpdateUserRequest!) : User!
+  userKYC(input: UserKYCRequest!) : User!
 
   # Association
   registerAssociation(name: String!): Association!
@@ -749,14 +860,15 @@ input ApplyLoanRequest {
   createWaitList(input : RegisterWaitlist!): Boolean!
 
   # Loan
-  applyLoan(input : ApplyLoanRequest!) : Loan!
+  loanApplication(input : LoanApplicationRequest!) : Loan!
 }
 `, BuiltIn: false},
 	{Name: "graph/schema/queries.graphqls", Input: `type Query {
-  users: [User!]!
+  getAllUsers (page : Page!): GetUsersResult!
   authenticateUser(email:String!,password:String!): UserAuthenticated!
   geAllWaitlists (input: GetWaitlistsRequest!): GetWaitlistsResult!
   getAllAssociations (input: GetAssociationsRequest!): GetAssociationsResult!
+  getAllLoans (page : Page!) : GetLoansResult!
 }`, BuiltIn: false},
 	{Name: "graph/schema/user.graphqls", Input: `type User {
   id: ID!
@@ -770,9 +882,12 @@ input ApplyLoanRequest {
 	businessRegistrationDate : String
 	businessRCNumber  : String
 	occupation : String
-	salaryRange : String
+	salary : Float
 	dateOfBirth : String
 	maritalStatus : String
+  bvn : String
+  state : String
+  localGovernment : String
 	meansOfIdentification : String
   profilePicture : String
   documentURL : String
@@ -793,8 +908,7 @@ input RegisterUser {
 	businessRCNumber  : String
 }
 
-input UpdateUserRequest {
-  id : String!
+input UserKYCRequest {
   lastname : String
   firstname : String
   phoneNumber : String
@@ -804,12 +918,20 @@ input UpdateUserRequest {
 	businessRegistrationDate : String
 	businessRCNumber  : String
 	occupation : String
-	salaryRange : String
+	salary : Float
 	dateOfBirth : String
+  state : String
+  localGovernment : String
+  bvn : String
 	maritalStatus : UserMaritalStatus
 	meansOfIdentification : UserMeansOfIdentification
   profilePictureFile : Upload
   documentFile : Upload
+}
+
+type GetUsersResult{
+    page: PageInfo!
+    items: [User!]
 }
 
 type UserAuthenticated {
@@ -896,13 +1018,13 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_applyLoan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createWaitList_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.ApplyLoanRequest
+	var arg0 model.RegisterWaitlist
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNApplyLoanRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐApplyLoanRequest(ctx, tmp)
+		arg0, err = ec.unmarshalNRegisterWaitlist2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐRegisterWaitlist(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -911,13 +1033,13 @@ func (ec *executionContext) field_Mutation_applyLoan_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createWaitList_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_loanApplication_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.RegisterWaitlist
+	var arg0 model.LoanApplicationRequest
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRegisterWaitlist2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐRegisterWaitlist(ctx, tmp)
+		arg0, err = ec.unmarshalNLoanApplicationRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐLoanApplicationRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -956,13 +1078,13 @@ func (ec *executionContext) field_Mutation_registerUser_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_userKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.UpdateUserRequest
+	var arg0 model.UserKYCRequest
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUpdateUserRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐUpdateUserRequest(ctx, tmp)
+		arg0, err = ec.unmarshalNUserKYCRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐUserKYCRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1037,6 +1159,36 @@ func (ec *executionContext) field_Query_getAllAssociations_args(ctx context.Cont
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getAllLoans_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.Page
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg0, err = ec.unmarshalNPage2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPage(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getAllUsers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.Page
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg0, err = ec.unmarshalNPage2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPage(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg0
 	return args, nil
 }
 
@@ -1212,6 +1364,140 @@ func (ec *executionContext) _GetAssociationsResult_items(ctx context.Context, fi
 	return ec.marshalOAssociation2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐAssociationᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _GetLoansResult_page(ctx context.Context, field graphql.CollectedField, obj *model.GetLoansResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetLoansResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Page, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetLoansResult_items(ctx context.Context, field graphql.CollectedField, obj *model.GetLoansResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetLoansResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Loan)
+	fc.Result = res
+	return ec.marshalOLoan2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetUsersResult_page(ctx context.Context, field graphql.CollectedField, obj *model.GetUsersResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetUsersResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Page, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetUsersResult_items(ctx context.Context, field graphql.CollectedField, obj *model.GetUsersResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetUsersResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _GetWaitlistsResult_page(ctx context.Context, field graphql.CollectedField, obj *model.GetWaitlistsResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1314,7 +1600,7 @@ func (ec *executionContext) _Loan_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Loan_payback(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+func (ec *executionContext) _Loan_repaymentDuration(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1332,7 +1618,7 @@ func (ec *executionContext) _Loan_payback(ctx context.Context, field graphql.Col
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Loan().Payback(rctx, obj)
+		return ec.resolvers.Loan().RepaymentDuration(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1357,14 +1643,14 @@ func (ec *executionContext) _Loan_otherLoansAmount(ctx context.Context, field gr
 		Object:     "Loan",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Loan().OtherLoansAmount(rctx, obj)
+		return obj.OtherLoansAmount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1373,9 +1659,9 @@ func (ec *executionContext) _Loan_otherLoansAmount(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Loan_loanAmount(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
@@ -1389,14 +1675,14 @@ func (ec *executionContext) _Loan_loanAmount(ctx context.Context, field graphql.
 		Object:     "Loan",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Loan().LoanAmount(rctx, obj)
+		return obj.LoanAmount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1405,12 +1691,76 @@ func (ec *executionContext) _Loan_loanAmount(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Loan_monthlyRepayment(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+func (ec *executionContext) _Loan_repayment(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Loan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Repayment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Loan_amountPaid(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Loan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AmountPaid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Loan_repaymentDates(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1428,7 +1778,7 @@ func (ec *executionContext) _Loan_monthlyRepayment(ctx context.Context, field gr
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Loan().MonthlyRepayment(rctx, obj)
+		return ec.resolvers.Loan().RepaymentDates(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1437,41 +1787,9 @@ func (ec *executionContext) _Loan_monthlyRepayment(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Loan_monthlyInterestRate(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Loan",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Loan().MonthlyInterestRate(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Loan_accountNumber(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
@@ -1570,38 +1888,6 @@ func (ec *executionContext) _Loan_bank(ctx context.Context, field graphql.Collec
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Loan_processingFee(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Loan",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Loan().ProcessingFee(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Loan_status(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1632,6 +1918,102 @@ func (ec *executionContext) _Loan_status(ctx context.Context, field graphql.Coll
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Loan_repaymentStatus(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Loan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepaymentStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Loan_balance(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Loan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Balance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Loan_loanApprovalDate(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Loan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Loan().LoanApprovalDate(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_registerUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1676,7 +2058,7 @@ func (ec *executionContext) _Mutation_registerUser(ctx context.Context, field gr
 	return ec.marshalNUser2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_userKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1693,7 +2075,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateUser_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_userKYC_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1701,7 +2083,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUser(rctx, args["input"].(model.UpdateUserRequest))
+		return ec.resolvers.Mutation().UserKyc(rctx, args["input"].(model.UserKYCRequest))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1802,7 +2184,7 @@ func (ec *executionContext) _Mutation_createWaitList(ctx context.Context, field 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_applyLoan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_loanApplication(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1819,7 +2201,7 @@ func (ec *executionContext) _Mutation_applyLoan(ctx context.Context, field graph
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_applyLoan_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_loanApplication_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1827,7 +2209,7 @@ func (ec *executionContext) _Mutation_applyLoan(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ApplyLoan(rctx, args["input"].(model.ApplyLoanRequest))
+		return ec.resolvers.Mutation().LoanApplication(rctx, args["input"].(model.LoanApplicationRequest))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2019,7 +2401,7 @@ func (ec *executionContext) _PageInfo_totalCount(ctx context.Context, field grap
 	return ec.marshalNInt2int64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_getAllUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2035,9 +2417,16 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getAllUsers_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx)
+		return ec.resolvers.Query().GetAllUsers(rctx, args["page"].(models.Page))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2049,9 +2438,9 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.User)
+	res := resTmp.(*model.GetUsersResult)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNGetUsersResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetUsersResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_authenticateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2178,6 +2567,48 @@ func (ec *executionContext) _Query_getAllAssociations(ctx context.Context, field
 	res := resTmp.(*model.GetAssociationsResult)
 	fc.Result = res
 	return ec.marshalNGetAssociationsResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetAssociationsResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getAllLoans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getAllLoans_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllLoans(rctx, args["page"].(models.Page))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GetLoansResult)
+	fc.Result = res
+	return ec.marshalNGetLoansResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoansResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2606,7 +3037,7 @@ func (ec *executionContext) _User_occupation(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_salaryRange(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_salary(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2624,7 +3055,7 @@ func (ec *executionContext) _User_salaryRange(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SalaryRange, nil
+		return obj.Salary, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2633,9 +3064,9 @@ func (ec *executionContext) _User_salaryRange(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -2689,6 +3120,102 @@ func (ec *executionContext) _User_maritalStatus(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaritalStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_bvn(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BVN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_state(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_localGovernment(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LocalGovernment, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4226,77 +4753,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputApplyLoanRequest(ctx context.Context, obj interface{}) (model.ApplyLoanRequest, error) {
-	var it model.ApplyLoanRequest
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "payback":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payback"))
-			it.Payback, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "otherLoansAmount":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otherLoansAmount"))
-			it.OtherLoansAmount, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "loanAmount":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("loanAmount"))
-			it.LoanAmount, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "monthlyRepayment":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("monthlyRepayment"))
-			it.MonthlyRepayment, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "accountNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountNumber"))
-			it.AccountNumber, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "accountName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountName"))
-			it.AccountName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "bank":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bank"))
-			it.Bank, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputGetAssociationsRequest(ctx context.Context, obj interface{}) (model.GetAssociationsRequest, error) {
 	var it model.GetAssociationsRequest
 	asMap := map[string]interface{}{}
@@ -4342,6 +4798,69 @@ func (ec *executionContext) unmarshalInputGetWaitlistsRequest(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
 			it.Mode, err = ec.unmarshalOWaitlistMode2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐWaitlistMode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLoanApplicationRequest(ctx context.Context, obj interface{}) (model.LoanApplicationRequest, error) {
+	var it model.LoanApplicationRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "repaymentDuration":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repaymentDuration"))
+			it.RepaymentDuration, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "otherLoansAmount":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otherLoansAmount"))
+			it.OtherLoansAmount, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "loanAmount":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("loanAmount"))
+			it.LoanAmount, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "accountNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountNumber"))
+			it.AccountNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "accountName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountName"))
+			it.AccountName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bank":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bank"))
+			it.Bank, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4564,8 +5083,8 @@ func (ec *executionContext) unmarshalInputRegisterWaitlist(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateUserRequest(ctx context.Context, obj interface{}) (model.UpdateUserRequest, error) {
-	var it model.UpdateUserRequest
+func (ec *executionContext) unmarshalInputUserKYCRequest(ctx context.Context, obj interface{}) (model.UserKYCRequest, error) {
+	var it model.UserKYCRequest
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -4573,14 +5092,6 @@ func (ec *executionContext) unmarshalInputUpdateUserRequest(ctx context.Context,
 
 	for k, v := range asMap {
 		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "lastname":
 			var err error
 
@@ -4653,11 +5164,11 @@ func (ec *executionContext) unmarshalInputUpdateUserRequest(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "salaryRange":
+		case "salary":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("salaryRange"))
-			it.SalaryRange, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("salary"))
+			it.Salary, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4666,6 +5177,30 @@ func (ec *executionContext) unmarshalInputUpdateUserRequest(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
 			it.DateOfBirth, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "state":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			it.State, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "localGovernment":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("localGovernment"))
+			it.LocalGovernment, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bvn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bvn"))
+			it.Bvn, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4801,6 +5336,82 @@ func (ec *executionContext) _GetAssociationsResult(ctx context.Context, sel ast.
 	return out
 }
 
+var getLoansResultImplementors = []string{"GetLoansResult"}
+
+func (ec *executionContext) _GetLoansResult(ctx context.Context, sel ast.SelectionSet, obj *model.GetLoansResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, getLoansResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GetLoansResult")
+		case "page":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._GetLoansResult_page(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "items":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._GetLoansResult_items(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var getUsersResultImplementors = []string{"GetUsersResult"}
+
+func (ec *executionContext) _GetUsersResult(ctx context.Context, sel ast.SelectionSet, obj *model.GetUsersResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, getUsersResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GetUsersResult")
+		case "page":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._GetUsersResult_page(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "items":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._GetUsersResult_items(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var getWaitlistsResultImplementors = []string{"GetWaitlistsResult"}
 
 func (ec *executionContext) _GetWaitlistsResult(ctx context.Context, sel ast.SelectionSet, obj *model.GetWaitlistsResult) graphql.Marshaler {
@@ -4869,7 +5480,7 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
-		case "payback":
+		case "repaymentDuration":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -4878,7 +5489,7 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Loan_payback(ctx, field, obj)
+				res = ec._Loan_repaymentDuration(ctx, field, obj)
 				return res
 			}
 
@@ -4887,57 +5498,34 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 
 			})
 		case "otherLoansAmount":
-			field := field
-
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Loan_otherLoansAmount(ctx, field, obj)
-				return res
+				return ec._Loan_otherLoansAmount(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
 		case "loanAmount":
-			field := field
-
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Loan_loanAmount(ctx, field, obj)
-				return res
+				return ec._Loan_loanAmount(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
-		case "monthlyRepayment":
-			field := field
-
+		case "repayment":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Loan_monthlyRepayment(ctx, field, obj)
-				return res
+				return ec._Loan_repayment(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
-		case "monthlyInterestRate":
+		case "amountPaid":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Loan_amountPaid(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "repaymentDates":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -4946,7 +5534,7 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Loan_monthlyInterestRate(ctx, field, obj)
+				res = ec._Loan_repaymentDates(ctx, field, obj)
 				return res
 			}
 
@@ -4975,7 +5563,28 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = innerFunc(ctx)
 
-		case "processingFee":
+		case "status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Loan_status(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "repaymentStatus":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Loan_repaymentStatus(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "balance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Loan_balance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "loanApprovalDate":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -4984,7 +5593,7 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Loan_processingFee(ctx, field, obj)
+				res = ec._Loan_loanApprovalDate(ctx, field, obj)
 				return res
 			}
 
@@ -4992,13 +5601,6 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
-		case "status":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Loan_status(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5039,9 +5641,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateUser":
+		case "userKYC":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateUser(ctx, field)
+				return ec._Mutation_userKYC(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -5069,9 +5671,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "applyLoan":
+		case "loanApplication":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_applyLoan(ctx, field)
+				return ec._Mutation_loanApplication(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -5180,7 +5782,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "users":
+		case "getAllUsers":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -5189,7 +5791,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_users(ctx, field)
+				res = ec._Query_getAllUsers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -5259,6 +5861,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getAllAssociations(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getAllLoans":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAllLoans(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -5427,9 +6052,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = innerFunc(ctx)
 
-		case "salaryRange":
+		case "salary":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_salaryRange(ctx, field, obj)
+				return ec._User_salary(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5454,6 +6079,27 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "maritalStatus":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._User_maritalStatus(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "bvn":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._User_bvn(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "state":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._User_state(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "localGovernment":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._User_localGovernment(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -6072,11 +6718,6 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNApplyLoanRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐApplyLoanRequest(ctx context.Context, v interface{}) (model.ApplyLoanRequest, error) {
-	res, err := ec.unmarshalInputApplyLoanRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNAssociation2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐAssociation(ctx context.Context, sel ast.SelectionSet, v models.Association) graphql.Marshaler {
 	return ec._Association(ctx, sel, &v)
 }
@@ -6106,6 +6747,21 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
 func (ec *executionContext) unmarshalNGetAssociationsRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetAssociationsRequest(ctx context.Context, v interface{}) (model.GetAssociationsRequest, error) {
 	res, err := ec.unmarshalInputGetAssociationsRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6123,6 +6779,34 @@ func (ec *executionContext) marshalNGetAssociationsResult2ᚖgithubᚗcomᚋMast
 		return graphql.Null
 	}
 	return ec._GetAssociationsResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNGetLoansResult2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoansResult(ctx context.Context, sel ast.SelectionSet, v model.GetLoansResult) graphql.Marshaler {
+	return ec._GetLoansResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGetLoansResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoansResult(ctx context.Context, sel ast.SelectionSet, v *model.GetLoansResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._GetLoansResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNGetUsersResult2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetUsersResult(ctx context.Context, sel ast.SelectionSet, v model.GetUsersResult) graphql.Marshaler {
+	return ec._GetUsersResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGetUsersResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetUsersResult(ctx context.Context, sel ast.SelectionSet, v *model.GetUsersResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._GetUsersResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNGetWaitlistsRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetWaitlistsRequest(ctx context.Context, v interface{}) (model.GetWaitlistsRequest, error) {
@@ -6224,6 +6908,16 @@ func (ec *executionContext) marshalNLoan2ᚖgithubᚗcomᚋMastoCredᚑIncᚋweb
 	return ec._Loan(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNLoanApplicationRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐLoanApplicationRequest(ctx context.Context, v interface{}) (model.LoanApplicationRequest, error) {
+	res, err := ec.unmarshalInputLoanApplicationRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNPage2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPage(ctx context.Context, v interface{}) (models.Page, error) {
+	res, err := ec.unmarshalInputPage(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNPage2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPage(ctx context.Context, v interface{}) (*models.Page, error) {
 	res, err := ec.unmarshalInputPage(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -6264,57 +6958,8 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpdateUserRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐUpdateUserRequest(ctx context.Context, v interface{}) (model.UpdateUserRequest, error) {
-	res, err := ec.unmarshalInputUpdateUserRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNUser2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUser(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
@@ -6339,6 +6984,11 @@ func (ec *executionContext) marshalNUserAuthenticated2ᚖgithubᚗcomᚋMastoCre
 		return graphql.Null
 	}
 	return ec._UserAuthenticated(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUserKYCRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐUserKYCRequest(ctx context.Context, v interface{}) (model.UserKYCRequest, error) {
+	res, err := ec.unmarshalInputUserKYCRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUserTypeEnum2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐUserTypeEnum(ctx context.Context, v interface{}) (model.UserTypeEnum, error) {
@@ -6710,6 +7360,79 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) marshalOLoan2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoanᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Loan) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLoan2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6718,6 +7441,38 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
@@ -6750,6 +7505,53 @@ func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	}
 	res := graphql.MarshalUpload(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOUserMaritalStatus2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐUserMaritalStatus(ctx context.Context, v interface{}) (*model.UserMaritalStatus, error) {

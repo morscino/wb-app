@@ -26,6 +26,9 @@ type Operations interface {
 	RegisterAssociation(ctx context.Context, a models.Association) (*models.Association, error)
 	GetAllAssociations(ctx context.Context, page models.Page) ([]*models.Association, *models.PageInfo, error)
 	GetAssociationById(ctx context.Context, id uuid.UUID) (models.Association, error)
+	GetAllLoans(ctx context.Context, page models.Page) ([]*models.Loan, *models.PageInfo, error)
+
+	ApplyForLoan(ctx context.Context, loan models.Loan, userID uuid.UUID) (*models.Loan, error)
 }
 
 type Controller struct {

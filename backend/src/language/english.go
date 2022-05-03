@@ -22,4 +22,9 @@ var ErrEnglish = map[string]error{
 	ErrRecordUpdateFailed:             errors.New("record update failed"),
 	ErrInvalidFileUpload:              errors.New("invalid file upload"),
 	ErrFileUpload:                     errors.New("file upload error"),
+	ErrBvnRequiredForLoan:             errors.New("incomplete KYC, you have not submitted your BVN"),
+	ErrProfilePictureRequiredForLoan:  errors.New("incomplete KYC, you have not uploaded your profile picture"),
+	ErrMeansOfIdRequiredForLoan:       errors.New("incomplete KYC, you have not uploaded your means of identification"),
+	ErrCACDocRequiredForLoan:          errors.New("incomplete KYC, you have not uploaded your CAC document"),
+	ErrSalaryRequiredForLoan:          errors.New("incomplete KYC, you have not subnitted your salary"),
 }

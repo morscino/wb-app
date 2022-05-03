@@ -11,16 +11,6 @@ import (
 	"github.com/MastoCred-Inc/web-app/models"
 )
 
-type ApplyLoanRequest struct {
-	Payback          string `json:"payback"`
-	OtherLoansAmount string `json:"otherLoansAmount"`
-	LoanAmount       string `json:"loanAmount"`
-	MonthlyRepayment string `json:"monthlyRepayment"`
-	AccountNumber    string `json:"accountNumber"`
-	AccountName      string `json:"accountName"`
-	Bank             string `json:"bank"`
-}
-
 type GetAssociationsRequest struct {
 	Page *models.Page `json:"page"`
 }
@@ -28,6 +18,16 @@ type GetAssociationsRequest struct {
 type GetAssociationsResult struct {
 	Page  *models.PageInfo      `json:"page"`
 	Items []*models.Association `json:"items"`
+}
+
+type GetLoansResult struct {
+	Page  *models.PageInfo `json:"page"`
+	Items []*models.Loan   `json:"items"`
+}
+
+type GetUsersResult struct {
+	Page  *models.PageInfo `json:"page"`
+	Items []*models.User   `json:"items"`
 }
 
 type GetWaitlistsRequest struct {
@@ -38,6 +38,15 @@ type GetWaitlistsRequest struct {
 type GetWaitlistsResult struct {
 	Page  *models.PageInfo   `json:"page"`
 	Items []*models.Waitlist `json:"items"`
+}
+
+type LoanApplicationRequest struct {
+	RepaymentDuration float64 `json:"repaymentDuration"`
+	OtherLoansAmount  float64 `json:"otherLoansAmount"`
+	LoanAmount        float64 `json:"loanAmount"`
+	AccountNumber     string  `json:"accountNumber"`
+	AccountName       string  `json:"accountName"`
+	Bank              string  `json:"bank"`
 }
 
 type RegisterUser struct {
@@ -63,8 +72,12 @@ type RegisterWaitlist struct {
 	Mode         models.WaitlistMode `json:"mode"`
 }
 
-type UpdateUserRequest struct {
-	ID                       string                     `json:"id"`
+type UserAuthenticated struct {
+	Token string       `json:"token"`
+	User  *models.User `json:"user"`
+}
+
+type UserKYCRequest struct {
 	Lastname                 *string                    `json:"lastname"`
 	Firstname                *string                    `json:"firstname"`
 	PhoneNumber              *string                    `json:"phoneNumber"`
@@ -74,17 +87,15 @@ type UpdateUserRequest struct {
 	BusinessRegistrationDate *string                    `json:"businessRegistrationDate"`
 	BusinessRCNumber         *string                    `json:"businessRCNumber"`
 	Occupation               *string                    `json:"occupation"`
-	SalaryRange              *string                    `json:"salaryRange"`
+	Salary                   *float64                   `json:"salary"`
 	DateOfBirth              *string                    `json:"dateOfBirth"`
+	State                    *string                    `json:"state"`
+	LocalGovernment          *string                    `json:"localGovernment"`
+	Bvn                      *string                    `json:"bvn"`
 	MaritalStatus            *UserMaritalStatus         `json:"maritalStatus"`
 	MeansOfIdentification    *UserMeansOfIdentification `json:"meansOfIdentification"`
 	ProfilePictureFile       *graphql.Upload            `json:"profilePictureFile"`
 	DocumentFile             *graphql.Upload            `json:"documentFile"`
-}
-
-type UserAuthenticated struct {
-	Token string       `json:"token"`
-	User  *models.User `json:"user"`
 }
 
 type UserMaritalStatus string

@@ -37,17 +37,28 @@ func (r *userResolver) Association(ctx context.Context, obj *models.User) (*mode
 }
 
 func (r *userResolver) BusinessRegistrationDate(ctx context.Context, obj *models.User) (*string, error) {
-	b := obj.BusinessRegistrationDate.Time.String()
+	var b string
+	if obj.BusinessRegistrationDate != nil {
+		b = obj.BusinessRegistrationDate.Time.String()
+	}
+
 	return &b, nil
 }
 
 func (r *userResolver) DateOfBirth(ctx context.Context, obj *models.User) (*string, error) {
-	d := obj.DateOfBirth.Time.String()
+	var d string
+	if obj.DateOfBirth != nil {
+		d = obj.DateOfBirth.Time.String()
+	}
+
 	return &d, nil
 }
 
 func (r *userResolver) MeansOfIdentification(ctx context.Context, obj *models.User) (*string, error) {
-	m := models.MeansOfIdentificationMap[models.MeansOfIdentification(*obj.MeansOfIdentification)]
+	var m string
+	if obj.MeansOfIdentification != nil {
+		m = models.MeansOfIdentificationMap[models.MeansOfIdentification(*obj.MeansOfIdentification)]
+	}
 
 	return &m, nil
 }
@@ -60,3 +71,13 @@ func (r *userResolver) ProfilePicture(ctx context.Context, obj *models.User) (*s
 func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
 type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *userResolver) LocalGovernment(ctx context.Context, obj *models.User) (*string, error) {
+	return obj.LocalGovernment, nil
+}

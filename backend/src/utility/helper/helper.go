@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/MastoCred-Inc/web-app/language"
@@ -56,12 +57,28 @@ func StringToUuid(s string) (uuid.UUID, error) {
 	return uuid.Parse(s)
 }
 
+func StringToFloat64(s string) (float64, error) {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return f, nil
+}
+
+func Float64ToString(f float64) string {
+	s := strconv.FormatFloat(f, 'E', -1, 64)
+	return s
+}
+
+func ConverInt64ToString(i int64) string {
+	return strconv.Itoa(int(i))
+}
+
 // StreamToByte converts an io Stream to a slice of byte
 func StreamToByte(stream io.Reader) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	_, _ = buf.ReadFrom(stream)
-	//if err == nil {
-	//	return []byte{}, err
-	//}
+
 	return buf.Bytes(), nil
 }

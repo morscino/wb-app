@@ -130,6 +130,7 @@ func (u *Upload) UploadFile(fileInput FileInput, folder string) (*FileAttachment
 
 // ValidateFile validates the file provided
 func (u *Upload) ValidateFile(fileInput FileInput, maxFileSize int64, attachmentKinds []AttachmentKind) error {
+	fmt.Println(fileInput.Size)
 	if fileInput.Size > maxFileSize {
 		return fmt.Errorf("%s file should of size of %d, MB or less", fileInput.Name, maxFileSize)
 	}

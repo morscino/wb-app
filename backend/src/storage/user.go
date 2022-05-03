@@ -16,6 +16,7 @@ type UserStore interface {
 	RegisterUser(ctx context.Context, user models.User) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	UpdateUserByID(ctx context.Context, id uuid.UUID, user models.User) (models.User, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, error)
 }
 
 // User object
@@ -59,6 +60,16 @@ func (u *User) GetUserByEmail(ctx context.Context, email string) (models.User, e
 	return user, nil
 }
 
+func (u *User) GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
+	var user models.User
+	db := u.storage.DB.WithContext(ctx).Where("id = ?", userID).Find(&user)
+	if db.Error != nil {
+		u.logger.Err(db.Error).Msgf("User::GetUserByID error: %v, (%v)", language.ErrText()[language.ErrRecordNotFound], db.Error)
+		return user, language.ErrText()[language.ErrRecordNotFound]
+	}
+	return user, nil
+}
+
 // UpdateByID should update the user record in the storage
 func (u *User) UpdateUserByID(ctx context.Context, id uuid.UUID, user models.User) (models.User, error) {
 	db := u.storage.DB.WithContext(ctx).Model(models.User{
@@ -76,12 +87,15 @@ func (u *User) UpdateUserByID(ctx context.Context, id uuid.UUID, user models.Use
 		BusinessRegistrationDate: user.BusinessRegistrationDate,
 		BusinessRCNumber:         user.BusinessRCNumber,
 		Occupation:               user.Occupation,
-		SalaryRange:              user.SalaryRange,
+		Salary:                   user.Salary,
 		DateOfBirth:              user.DateOfBirth,
 		MaritalStatus:            user.MaritalStatus,
 		MeansOfIdentification:    user.MeansOfIdentification,
 		ProfilePictureURL:        user.ProfilePictureURL,
 		DocumentURL:              user.DocumentURL,
+		State:                    user.State,
+		LocalGovernment:          user.LocalGovernment,
+		BVN:                      user.BVN,
 
 		UpdatedAt: user.UpdatedAt, //disabled hooks and manually adding updatedAt here by self
 

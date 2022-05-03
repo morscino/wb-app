@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/MastoCred-Inc/web-app/h/graph/generated"
@@ -34,13 +33,13 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 	return user, nil
 }
 
-func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserRequest) (*models.User, error) {
+func (r *mutationResolver) UserKyc(ctx context.Context, input model.UserKYCRequest) (*models.User, error) {
 	var (
 		profilePictureUrl, docFileUrl string
 	)
 	ginC, err := helper.GinContextFromContext(ctx)
 	if err != nil {
-		r.logger.Err(err).Msgf("UpdateUser:GinContextFromContext [%v] : (%v)", input.ID, err)
+		r.logger.Err(err).Msgf("UpdateUser:GinContextFromContext : (%v)", err)
 		return nil, err
 	}
 
@@ -51,7 +50,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 	}
 
 	// validate user input
-	userModel, err := translator.ConvertUpdateUserInputToUserModel(input)
+	userModel, err := translator.ConvertUpdateUserInputToUserModel(input, actorUser.ID)
 	if err != nil {
 		r.logger.Err(err).Msgf("UpdateUser:ConvertUpdateUserInputToUserModel : (%v)", err)
 		return nil, err
@@ -78,6 +77,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 		if err != nil {
 			return nil, err
 		}
+		userModel.ProfilePictureURL = &profilePictureUrl
 	}
 
 	if input.DocumentFile != nil {
@@ -96,10 +96,8 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 		if err != nil {
 			return nil, err
 		}
+		userModel.DocumentURL = &docFileUrl
 	}
-
-	userModel.ProfilePictureURL = &profilePictureUrl
-	userModel.DocumentURL = &docFileUrl
 
 	// send user to controller
 	user, err := r.controller.UpdateUserByID(ctx, *userModel)
@@ -150,8 +148,36 @@ func (r *mutationResolver) CreateWaitList(ctx context.Context, input model.Regis
 	return created, nil
 }
 
-func (r *mutationResolver) ApplyLoan(ctx context.Context, input model.ApplyLoanRequest) (*models.Loan, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) LoanApplication(ctx context.Context, input model.LoanApplicationRequest) (*models.Loan, error) {
+	ginC, err := helper.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := r.controller.Middleware().PasetoUserAuth(ginC)
+	if err != nil {
+		return nil, err
+	}
+	// prevent admin from applying for loans
+	if user.UserType != int64(models.UserTypeIndividual) && user.UserType != int64(models.UserTypeSME) {
+		return nil, language.ErrText()[language.ErrAccessDenied]
+	}
+
+	loan := models.Loan{
+		RepaymentDuration: int64(input.RepaymentDuration),
+		OtherLoansAmount:  input.OtherLoansAmount,
+		LoanAmount:        input.LoanAmount,
+		AccountNumber:     input.AccountNumber,
+		AccountName:       input.AccountName,
+		Bank:              input.Bank,
+	}
+
+	newLoan, err := r.controller.ApplyForLoan(ctx, loan, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return newLoan, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

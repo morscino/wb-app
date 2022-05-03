@@ -33,12 +33,15 @@ type (
 		BusinessRegistrationDate *sql.NullTime
 		BusinessRCNumber         *string
 		Occupation               *string
-		SalaryRange              *string
+		Salary                   *float64
 		DateOfBirth              *sql.NullTime
 		MaritalStatus            *string
 		MeansOfIdentification    *int64
 		ProfilePictureURL        *string
 		DocumentURL              *string
+		BVN                      *string
+		State                    *string
+		LocalGovernment          *string
 		CreatedAt                time.Time
 		UpdatedAt                time.Time
 	}

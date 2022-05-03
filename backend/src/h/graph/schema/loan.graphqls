@@ -1,24 +1,31 @@
 type Loan {
   id: ID!
-  paybackDuration : String
-  period : String
-  otherLoansAmount : String
-  loanAmount : String
-  monthlyRepayment : String
-  monthlyInterestRate : String
+  repaymentDuration : String
+  otherLoansAmount : Float
+  loanAmount : Float
+  repayment : Float
+  amountPaid : Float
+  repaymentDates : [String]
   accountNumber : String
   accountName : String
   bank : String
-  processingFee : String
   status : String
+  repaymentStatus : String
+  balance : Float
+  loanApprovalDate : String
 }
 
-input ApplyLoanRequest {
-    paybackDuration : String!
-    otherLoansAmount : String!
-    loanAmount : String!
-    monthlyRepayment : String!
+input LoanApplicationRequest {
+    repaymentDuration : Float!
+    otherLoansAmount : Float!
+    loanAmount : Float!
     accountNumber : String!
     accountName : String!
     bank : String!
 }
+
+type GetLoansResult{
+    page: PageInfo!
+    items: [Loan!]
+}
+

@@ -22,6 +22,11 @@ const (
 	ErrRecordUpdateFailed             string = "ErrRecordUpdateFailed"
 	ErrInvalidFileUpload              string = "ErrInvalidFileUpload"
 	ErrFileUpload                     string = "ErrFileUpload"
+	ErrBvnRequiredForLoan             string = "ErrBvnRequiredForLoan"
+	ErrProfilePictureRequiredForLoan  string = "ErrProfilePictureRequiredForLoan"
+	ErrMeansOfIdRequiredForLoan       string = "ErrMeansOfIdRequiredForLoan"
+	ErrCACDocRequiredForLoan          string = "ErrCACDocRequiredForLoan"
+	ErrSalaryRequiredForLoan          string = "ErrSalaryRequiredForLoan"
 
 	LanguageEnglish string = "english"
 )

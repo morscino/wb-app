@@ -9,34 +9,38 @@ import (
 
 	"github.com/MastoCred-Inc/web-app/h/graph/generated"
 	"github.com/MastoCred-Inc/web-app/models"
+	"github.com/MastoCred-Inc/web-app/utility/helper"
 )
 
 func (r *loanResolver) ID(ctx context.Context, obj *models.Loan) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return obj.ID.String(), nil
 }
 
-func (r *loanResolver) Payback(ctx context.Context, obj *models.Loan) (*string, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *loanResolver) RepaymentDuration(ctx context.Context, obj *models.Loan) (*string, error) {
+	var d string
+	switch obj.RepaymentDuration {
+	case models.RepaymentDurationTwoWeeks:
+		d = "2 weeks"
+	default:
+		t := helper.ConverInt64ToString(obj.RepaymentDuration % 4)
+		d = fmt.Sprintf("%v months", t)
+	}
+
+	return &d, nil
 }
 
-func (r *loanResolver) OtherLoansAmount(ctx context.Context, obj *models.Loan) (*string, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *loanResolver) RepaymentDates(ctx context.Context, obj *models.Loan) ([]*string, error) {
+	var dates []*string
+	for i := 0; i < len(obj.RepaymentDates); i++ {
+		s := obj.RepaymentDates[i].String()
+		dates = append(dates, &s)
+	}
+	return dates, nil
 }
 
-func (r *loanResolver) LoanAmount(ctx context.Context, obj *models.Loan) (*string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *loanResolver) MonthlyRepayment(ctx context.Context, obj *models.Loan) (*string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *loanResolver) MonthlyInterestRate(ctx context.Context, obj *models.Loan) (*string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *loanResolver) ProcessingFee(ctx context.Context, obj *models.Loan) (*string, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *loanResolver) LoanApprovalDate(ctx context.Context, obj *models.Loan) (*string, error) {
+	l := obj.LoanApprovalDate.Time.String()
+	return &l, nil
 }
 
 // Loan returns generated.LoanResolver implementation.

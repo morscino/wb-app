@@ -82,13 +82,14 @@ func ConvertUserInputToUserModel(userInput model.RegisterUser) (*models.User, er
 	return &user, nil
 }
 
-func ConvertUpdateUserInputToUserModel(userInput model.UpdateUserRequest) (*models.User, error) {
+func ConvertUpdateUserInputToUserModel(userInput model.UserKYCRequest, userID uuid.UUID) (*models.User, error) {
 	var (
 		DOB, regDate                       time.Time
 		err                                error
 		maritalStatusInput, meansOfIDInput string
 		m                                  int64
-		userID, assocID                    uuid.UUID
+		assocID                            uuid.UUID
+		salary                             float64
 	)
 
 	if userInput.MeansOfIdentification != nil {
@@ -129,7 +130,14 @@ func ConvertUpdateUserInputToUserModel(userInput model.UpdateUserRequest) (*mode
 		}
 	}
 
-	userID, err = helper.StringToUuid(*&userInput.ID)
+	if userInput.Salary != nil {
+		salary = *userInput.Salary
+		if err != nil {
+			return nil, language.ErrText()[language.ErrParseError]
+		}
+	}
+
+	//userID, err = helper.StringToUuid(*&userInput.ID)
 	if err != nil {
 		return nil, language.ErrText()[language.ErrParseError]
 	}
@@ -137,7 +145,7 @@ func ConvertUpdateUserInputToUserModel(userInput model.UpdateUserRequest) (*mode
 	user := models.User{
 		ID:                       userID,
 		Occupation:               userInput.Occupation,
-		SalaryRange:              userInput.SalaryRange,
+		Salary:                   &salary,
 		DateOfBirth:              &sql.NullTime{Time: DOB, Valid: true},
 		MaritalStatus:            &maritalStatusInput,
 		MeansOfIdentification:    &m,
@@ -146,6 +154,9 @@ func ConvertUpdateUserInputToUserModel(userInput model.UpdateUserRequest) (*mode
 		BusinessRegistrationDate: &sql.NullTime{Time: regDate, Valid: true},
 		AssociationID:            &assocID,
 		AssociationBranch:        userInput.AssociationBranch,
+		State:                    userInput.State,
+		LocalGovernment:          userInput.LocalGovernment,
+		BVN:                      userInput.Bvn,
 	}
 
 	return &user, nil

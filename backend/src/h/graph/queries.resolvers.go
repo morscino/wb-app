@@ -9,11 +9,12 @@ import (
 
 	"github.com/MastoCred-Inc/web-app/h/graph/generated"
 	"github.com/MastoCred-Inc/web-app/h/graph/model"
+	"github.com/MastoCred-Inc/web-app/language"
 	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/MastoCred-Inc/web-app/utility/helper"
 )
 
-func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
+func (r *queryResolver) GetAllUsers(ctx context.Context, page models.Page) (*model.GetUsersResult, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -62,6 +63,32 @@ func (r *queryResolver) GetAllAssociations(ctx context.Context, input model.GetA
 	return &model.GetAssociationsResult{
 		Items: associations,
 		Page:  page,
+	}, nil
+}
+
+func (r *queryResolver) GetAllLoans(ctx context.Context, page models.Page) (*model.GetLoansResult, error) {
+	ginC, err := helper.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	actorUser, err := r.controller.Middleware().PasetoUserAuth(ginC)
+	if err != nil {
+		return nil, err
+	}
+
+	if actorUser.UserType != int64(models.UserTypeAdmin) {
+		return nil, language.ErrText()[language.ErrAccessDenied]
+	}
+
+	loans, loanPage, err := r.controller.GetAllLoans(ginC, page)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.GetLoansResult{
+		Items: loans,
+		Page:  loanPage,
 	}, nil
 }
 

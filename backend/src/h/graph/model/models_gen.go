@@ -101,22 +101,22 @@ type UserKYCRequest struct {
 type UserMaritalStatus string
 
 const (
-	UserMaritalStatusSingle   UserMaritalStatus = "single"
-	UserMaritalStatusDivorced UserMaritalStatus = "divorced"
-	UserMaritalStatusEngaged  UserMaritalStatus = "engaged"
-	UserMaritalStatusMarried  UserMaritalStatus = "married"
+	UserMaritalStatusSingle         UserMaritalStatus = "single"
+	UserMaritalStatusSeperated      UserMaritalStatus = "seperated"
+	UserMaritalStatusEngaged        UserMaritalStatus = "engaged"
+	UserMaritalStatusPreferNotToSay UserMaritalStatus = "prefer_not_to_say"
 )
 
 var AllUserMaritalStatus = []UserMaritalStatus{
 	UserMaritalStatusSingle,
-	UserMaritalStatusDivorced,
+	UserMaritalStatusSeperated,
 	UserMaritalStatusEngaged,
-	UserMaritalStatusMarried,
+	UserMaritalStatusPreferNotToSay,
 }
 
 func (e UserMaritalStatus) IsValid() bool {
 	switch e {
-	case UserMaritalStatusSingle, UserMaritalStatusDivorced, UserMaritalStatusEngaged, UserMaritalStatusMarried:
+	case UserMaritalStatusSingle, UserMaritalStatusSeperated, UserMaritalStatusEngaged, UserMaritalStatusPreferNotToSay:
 		return true
 	}
 	return false

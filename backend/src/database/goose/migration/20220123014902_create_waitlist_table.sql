@@ -1,5 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 create table if NOT exists waitlists
 (
 	id uuid

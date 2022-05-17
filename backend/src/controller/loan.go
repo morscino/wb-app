@@ -25,9 +25,9 @@ func (c *Controller) ApplyForLoan(ctx context.Context, loan models.Loan, userID 
 			return nil, language.ErrText()[language.ErrCACDocRequiredForLoan]
 		}
 	}
-	if loanUser.BVN == nil {
-		return nil, language.ErrText()[language.ErrBvnRequiredForLoan]
-	}
+	// if loanUser.BVN == nil {
+	// 	return nil, language.ErrText()[language.ErrBvnRequiredForLoan]
+	// }
 
 	if loanUser.ProfilePictureURL == nil {
 		return nil, language.ErrText()[language.ErrProfilePictureRequiredForLoan]

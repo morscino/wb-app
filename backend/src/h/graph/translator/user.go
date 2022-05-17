@@ -108,7 +108,10 @@ func ConvertUpdateUserInputToUserModel(userInput model.UserKYCRequest, userID uu
 	}
 
 	if userInput.MaritalStatus != nil {
-		maritalStatusInput = string(*userInput.MaritalStatus)
+		maritalStatusInput = userInput.MaritalStatus.String()
+		if strings.EqualFold(maritalStatusInput, model.UserMaritalStatusPreferNotToSay.String()) {
+			maritalStatusInput = "prefer not to say"
+		}
 	}
 
 	if userInput.DateOfBirth != nil {

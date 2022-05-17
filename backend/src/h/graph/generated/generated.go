@@ -949,9 +949,9 @@ enum UserTypeEnum {
 
 enum UserMaritalStatus {
   single
-  divorced
+  seperated
   engaged
-  married
+  prefer_not_to_say
 }
 
 enum UserMeansOfIdentification {

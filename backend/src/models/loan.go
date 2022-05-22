@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Loan describes the loan object
 type Loan struct {
 	ID                uuid.UUID `gorm:"column:id;PRIMARY_KEY;type:uuid;default:gen_random_uuid()"`
 	UserID            uuid.UUID
@@ -27,6 +28,20 @@ type Loan struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	DeletedAt        sql.NullTime
+}
+
+// LoanInstalment describes the loan instalment object
+type LoanInstalment struct {
+	ID                uuid.UUID `gorm:"column:id;PRIMARY_KEY;type:uuid;default:gen_random_uuid()"`
+	LoanID            uuid.UUID
+	UserID            uuid.UUID
+	RepaymentAmount   float64
+	RepaymentDate     time.Time
+	RepaymentDuration int64
+	RepaymentStatus   string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	DeletedAt         sql.NullTime
 }
 
 const (
@@ -82,7 +97,7 @@ func (l *Loan) GetRepayment(interestRate, processingFee float64) float64 {
 	return repayment
 }
 
-func (l *Loan) GetRepaymentDate() []time.Time {
+func (l *Loan) GetRepaymentDates() []time.Time {
 	var t []time.Time
 
 	if l.RepaymentDuration < RepaymentDurationTwoWeeks {

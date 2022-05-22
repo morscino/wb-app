@@ -22,17 +22,33 @@ func (r *loanResolver) RepaymentDuration(ctx context.Context, obj *models.Loan) 
 	case models.RepaymentDurationTwoWeeks:
 		d = "2 weeks"
 	default:
-		t := helper.ConverInt64ToString(obj.RepaymentDuration % 4)
-		d = fmt.Sprintf("%v months", t)
-	}
+		var month string
+		m := obj.RepaymentDuration / 4
+		if m <= 1 {
+			month = "month"
+		} else {
+			month = "months"
+		}
+		t := helper.ConverInt64ToString(m)
+		d = fmt.Sprintf("%v %v", t, month)
 
+	}
 	return &d, nil
 }
 
-func (r *loanResolver) RepaymentDates(ctx context.Context, obj *models.Loan) ([]*string, error) {
+func (r *loanResolver) RepaymentAmount(ctx context.Context, obj *models.Loan) (*float64, error) {
+	interestRate, _ := helper.StringToFloat64(r.env.Get("INTEREST_RATE"))
+	processingFee, _ := helper.StringToFloat64(r.env.Get("PROCESSING_FEE"))
+	amount := obj.GetRepayment(interestRate, processingFee)
+
+	return &amount, nil
+}
+
+func (r *loanResolver) LoanRepaymentDates(ctx context.Context, obj *models.Loan) ([]*string, error) {
 	var dates []*string
-	for i := 0; i < len(obj.RepaymentDates); i++ {
-		s := obj.RepaymentDates[i].String()
+	repayments := obj.GetRepaymentDates()
+	for i := 0; i < len(repayments); i++ {
+		s := repayments[i].String()
 		dates = append(dates, &s)
 	}
 	return dates, nil
@@ -43,7 +59,58 @@ func (r *loanResolver) LoanApprovalDate(ctx context.Context, obj *models.Loan) (
 	return &l, nil
 }
 
+func (r *loanInstalmentResolver) ID(ctx context.Context, obj *models.LoanInstalment) (string, error) {
+	return obj.ID.String(), nil
+}
+
+func (r *loanInstalmentResolver) UserID(ctx context.Context, obj *models.LoanInstalment) (*string, error) {
+	u := obj.UserID.String()
+	return &u, nil
+}
+
+func (r *loanInstalmentResolver) LoanID(ctx context.Context, obj *models.LoanInstalment) (*string, error) {
+	l := obj.LoanID.String()
+	return &l, nil
+}
+
+func (r *loanInstalmentResolver) LoanRepaymentAmount(ctx context.Context, obj *models.LoanInstalment) (*float64, error) {
+	l := obj.RepaymentAmount
+	return &l, nil
+}
+
+func (r *loanInstalmentResolver) LoanRepaymentDate(ctx context.Context, obj *models.LoanInstalment) (*string, error) {
+	u := obj.RepaymentDate.String()
+	return &u, nil
+}
+
+func (r *loanInstalmentResolver) RepaymentDuration(ctx context.Context, obj *models.LoanInstalment) (*string, error) {
+	var d string
+	switch obj.RepaymentDuration {
+	case models.RepaymentDurationTwoWeeks:
+		d = "2 weeks"
+	default:
+		var month string
+		m := obj.RepaymentDuration / 4
+		if m <= 1 {
+			month = "month"
+		} else {
+			month = "months"
+		}
+		t := helper.ConverInt64ToString(m)
+		d = fmt.Sprintf("%v %v", t, month)
+
+	}
+
+	return &d, nil
+}
+
 // Loan returns generated.LoanResolver implementation.
 func (r *Resolver) Loan() generated.LoanResolver { return &loanResolver{r} }
 
+// LoanInstalment returns generated.LoanInstalmentResolver implementation.
+func (r *Resolver) LoanInstalment() generated.LoanInstalmentResolver {
+	return &loanInstalmentResolver{r}
+}
+
 type loanResolver struct{ *Resolver }
+type loanInstalmentResolver struct{ *Resolver }

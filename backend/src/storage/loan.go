@@ -8,13 +8,16 @@ import (
 	"github.com/MastoCred-Inc/web-app/database"
 	"github.com/MastoCred-Inc/web-app/language"
 	"github.com/MastoCred-Inc/web-app/models"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
 
-//go:generate mockgen -source loan.go -destination ./mock/loan_user.go -package mock LoanStore
+//go:generate mockgen -source loan.go -destination ./mock/loan.go -package mock LoanStore
 type LoanStore interface {
 	CreateLoan(ctx context.Context, loan models.Loan) (models.Loan, error)
 	GetAllLoans(ctx context.Context, page models.Page) ([]*models.Loan, *models.PageInfo, error)
+	UpdateLoanByID(ctx context.Context, loanID uuid.UUID, loan models.Loan) (models.Loan, error)
+	GetLoanByID(ctx context.Context, loanID uuid.UUID) (*models.Loan, error)
 }
 
 // Loan object
@@ -99,4 +102,43 @@ func (l *Loan) GetAllLoans(ctx context.Context, page models.Page) ([]*models.Loa
 		HasPreviousPage: *page.Number > 1,
 		TotalCount:      count,
 	}, nil
+}
+
+func (l *Loan) UpdateLoanByID(ctx context.Context, loanID uuid.UUID, loan models.Loan) (models.Loan, error) {
+	db := l.storage.DB.WithContext(ctx).Model(models.Loan{
+		ID: loanID,
+	}).UpdateColumns(models.Loan{
+		UserID:            loan.UserID,
+		RepaymentDuration: loan.RepaymentDuration,
+		OtherLoansAmount:  loan.OtherLoansAmount,
+		LoanAmount:        loan.LoanAmount,
+		AccountNumber:     loan.AccountNumber,
+		AccountName:       loan.AccountName,
+		Bank:              loan.Bank,
+		AmountPaid:        loan.AmountPaid,
+		RepaymentStatus:   loan.RepaymentStatus,
+		Balance:           loan.Balance,
+		Status:            loan.Status,
+		LoanApprovalDate:  loan.LoanApprovalDate,
+		DeletedAt:         loan.DeletedAt,
+		UpdatedAt:         loan.UpdatedAt, //disabled hooks and manually adding updatedAt here by self
+
+	})
+	if db.Error != nil {
+		l.logger.Err(db.Error).Msgf("Loan::UpdateByID error: %v, (%v)", language.ErrText()[language.ErrRecordUpdateFailed], db.Error)
+		return models.Loan{}, language.ErrText()[language.ErrRecordUpdateFailed]
+	}
+	loan.ID = loanID
+
+	return loan, nil
+}
+
+func (l *Loan) GetLoanByID(ctx context.Context, loanID uuid.UUID) (*models.Loan, error) {
+	var loan models.Loan
+	db := l.storage.DB.WithContext(ctx).Where("id = ?", loanID).Find(&loan)
+	if db.Error != nil {
+		l.logger.Err(db.Error).Msgf("LoanInstalment::GetLoanByID error: %v, (%v)", language.ErrText()[language.ErrRecordNotFound], db.Error)
+		return nil, language.ErrText()[language.ErrRecordNotFound]
+	}
+	return &loan, nil
 }

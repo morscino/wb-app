@@ -1,7 +1,11 @@
 type Query {
   getAllUsers (page : Page!): GetUsersResult!
   authenticateUser(email:String!,password:String!): UserAuthenticated!
+
   geAllWaitlists (input: GetWaitlistsRequest!): GetWaitlistsResult!
   getAllAssociations (input: GetAssociationsRequest!): GetAssociationsResult!
+
   getAllLoans (page : Page!) : GetLoansResult!
+  getLoansByUserId(userID : String!) : [Loan!]
+  getLoanInstalmentsByUserID(userID : String!,page : Page!) : GetLoanInstalmentsResult!
 }

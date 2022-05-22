@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/MastoCred-Inc/web-app/h/graph/generated"
 	"github.com/MastoCred-Inc/web-app/h/graph/model"
@@ -88,6 +89,41 @@ func (r *queryResolver) GetAllLoans(ctx context.Context, page models.Page) (*mod
 
 	return &model.GetLoansResult{
 		Items: loans,
+		Page:  loanPage,
+	}, nil
+}
+
+func (r *queryResolver) GetLoansByUserID(ctx context.Context, userID string) ([]*models.Loan, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetLoanInstalmentsByUserID(ctx context.Context, userID string, page models.Page) (*model.GetLoanInstalmentsResult, error) {
+	ginC, err := helper.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	actorUser, err := r.controller.Middleware().PasetoUserAuth(ginC)
+	if err != nil {
+		return nil, err
+	}
+
+	if actorUser.UserType != int64(models.UserTypeAdmin) && !strings.EqualFold(userID, actorUser.ID.String()) {
+		return nil, language.ErrText()[language.ErrAccessDenied]
+	}
+
+	u, err := helper.StringToUuid(userID)
+	if err != nil {
+		return nil, language.ErrText()[language.ErrParseError]
+	}
+
+	loanInstalments, loanPage, err := r.controller.GetLoanInstalmentsByUserID(ginC, u, page)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.GetLoanInstalmentsResult{
+		Items: loanInstalments,
 		Page:  loanPage,
 	}, nil
 }

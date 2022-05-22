@@ -3,9 +3,9 @@ type Loan {
   repaymentDuration : String
   otherLoansAmount : Float
   loanAmount : Float
-  repayment : Float
+  repaymentAmount : Float
   amountPaid : Float
-  repaymentDates : [String]
+  loanRepaymentDates : [String]
   accountNumber : String
   accountName : String
   bank : String
@@ -13,6 +13,16 @@ type Loan {
   repaymentStatus : String
   balance : Float
   loanApprovalDate : String
+}
+
+type LoanInstalment{
+    id: ID!
+    userID : String
+    loanID : String
+    loanRepaymentAmount : Float
+    loanRepaymentDate : String
+    repaymentDuration : String
+    repaymentStatus : String
 }
 
 input LoanApplicationRequest {
@@ -27,5 +37,16 @@ input LoanApplicationRequest {
 type GetLoansResult{
     page: PageInfo!
     items: [Loan!]
+}
+
+type GetLoanInstalmentsResult{
+    page: PageInfo!
+    items: [LoanInstalment!]
+}
+
+enum LoanStatusEnum{
+    approved
+    declined
+    pending
 }
 

@@ -20,6 +20,11 @@ type GetAssociationsResult struct {
 	Items []*models.Association `json:"items"`
 }
 
+type GetLoanInstalmentsResult struct {
+	Page  *models.PageInfo         `json:"page"`
+	Items []*models.LoanInstalment `json:"items"`
+}
+
 type GetLoansResult struct {
 	Page  *models.PageInfo `json:"page"`
 	Items []*models.Loan   `json:"items"`
@@ -96,6 +101,49 @@ type UserKYCRequest struct {
 	MeansOfIdentification    *UserMeansOfIdentification `json:"meansOfIdentification"`
 	ProfilePictureFile       *graphql.Upload            `json:"profilePictureFile"`
 	DocumentFile             *graphql.Upload            `json:"documentFile"`
+}
+
+type LoanStatusEnum string
+
+const (
+	LoanStatusEnumApproved LoanStatusEnum = "approved"
+	LoanStatusEnumDeclined LoanStatusEnum = "declined"
+	LoanStatusEnumPending  LoanStatusEnum = "pending"
+)
+
+var AllLoanStatusEnum = []LoanStatusEnum{
+	LoanStatusEnumApproved,
+	LoanStatusEnumDeclined,
+	LoanStatusEnumPending,
+}
+
+func (e LoanStatusEnum) IsValid() bool {
+	switch e {
+	case LoanStatusEnumApproved, LoanStatusEnumDeclined, LoanStatusEnumPending:
+		return true
+	}
+	return false
+}
+
+func (e LoanStatusEnum) String() string {
+	return string(e)
+}
+
+func (e *LoanStatusEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LoanStatusEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LoanStatusEnum", str)
+	}
+	return nil
+}
+
+func (e LoanStatusEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type UserMaritalStatus string

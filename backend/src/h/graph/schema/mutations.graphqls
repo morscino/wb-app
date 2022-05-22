@@ -11,4 +11,5 @@ type Mutation {
 
   # Loan
   loanApplication(input : LoanApplicationRequest!) : Loan!
+  approveLoanToggle(loanId : String!,loanStatus : LoanStatusEnum!) : Boolean!
 }

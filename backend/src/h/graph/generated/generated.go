@@ -38,6 +38,7 @@ type Config struct {
 type ResolverRoot interface {
 	Association() AssociationResolver
 	Loan() LoanResolver
+	LoanInstalment() LoanInstalmentResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	User() UserResolver
@@ -58,6 +59,11 @@ type ComplexityRoot struct {
 		Page  func(childComplexity int) int
 	}
 
+	GetLoanInstalmentsResult struct {
+		Items func(childComplexity int) int
+		Page  func(childComplexity int) int
+	}
+
 	GetLoansResult struct {
 		Items func(childComplexity int) int
 		Page  func(childComplexity int) int
@@ -74,23 +80,34 @@ type ComplexityRoot struct {
 	}
 
 	Loan struct {
-		AccountName       func(childComplexity int) int
-		AccountNumber     func(childComplexity int) int
-		AmountPaid        func(childComplexity int) int
-		Balance           func(childComplexity int) int
-		Bank              func(childComplexity int) int
-		ID                func(childComplexity int) int
-		LoanAmount        func(childComplexity int) int
-		LoanApprovalDate  func(childComplexity int) int
-		OtherLoansAmount  func(childComplexity int) int
-		Repayment         func(childComplexity int) int
-		RepaymentDates    func(childComplexity int) int
-		RepaymentDuration func(childComplexity int) int
-		RepaymentStatus   func(childComplexity int) int
-		Status            func(childComplexity int) int
+		AccountName        func(childComplexity int) int
+		AccountNumber      func(childComplexity int) int
+		AmountPaid         func(childComplexity int) int
+		Balance            func(childComplexity int) int
+		Bank               func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		LoanAmount         func(childComplexity int) int
+		LoanApprovalDate   func(childComplexity int) int
+		LoanRepaymentDates func(childComplexity int) int
+		OtherLoansAmount   func(childComplexity int) int
+		RepaymentAmount    func(childComplexity int) int
+		RepaymentDuration  func(childComplexity int) int
+		RepaymentStatus    func(childComplexity int) int
+		Status             func(childComplexity int) int
+	}
+
+	LoanInstalment struct {
+		ID                  func(childComplexity int) int
+		LoanID              func(childComplexity int) int
+		LoanRepaymentAmount func(childComplexity int) int
+		LoanRepaymentDate   func(childComplexity int) int
+		RepaymentDuration   func(childComplexity int) int
+		RepaymentStatus     func(childComplexity int) int
+		UserID              func(childComplexity int) int
 	}
 
 	Mutation struct {
+		ApproveLoanToggle   func(childComplexity int, loanID string, loanStatus model.LoanStatusEnum) int
 		CreateWaitList      func(childComplexity int, input model.RegisterWaitlist) int
 		LoanApplication     func(childComplexity int, input model.LoanApplicationRequest) int
 		RegisterAssociation func(childComplexity int, name string) int
@@ -107,11 +124,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AuthenticateUser   func(childComplexity int, email string, password string) int
-		GeAllWaitlists     func(childComplexity int, input model.GetWaitlistsRequest) int
-		GetAllAssociations func(childComplexity int, input model.GetAssociationsRequest) int
-		GetAllLoans        func(childComplexity int, page models.Page) int
-		GetAllUsers        func(childComplexity int, page models.Page) int
+		AuthenticateUser           func(childComplexity int, email string, password string) int
+		GeAllWaitlists             func(childComplexity int, input model.GetWaitlistsRequest) int
+		GetAllAssociations         func(childComplexity int, input model.GetAssociationsRequest) int
+		GetAllLoans                func(childComplexity int, page models.Page) int
+		GetAllUsers                func(childComplexity int, page models.Page) int
+		GetLoanInstalmentsByUserID func(childComplexity int, userID string, page models.Page) int
+		GetLoansByUserID           func(childComplexity int, userID string) int
 	}
 
 	User struct {
@@ -160,9 +179,19 @@ type LoanResolver interface {
 	ID(ctx context.Context, obj *models.Loan) (string, error)
 	RepaymentDuration(ctx context.Context, obj *models.Loan) (*string, error)
 
-	RepaymentDates(ctx context.Context, obj *models.Loan) ([]*string, error)
+	RepaymentAmount(ctx context.Context, obj *models.Loan) (*float64, error)
+
+	LoanRepaymentDates(ctx context.Context, obj *models.Loan) ([]*string, error)
 
 	LoanApprovalDate(ctx context.Context, obj *models.Loan) (*string, error)
+}
+type LoanInstalmentResolver interface {
+	ID(ctx context.Context, obj *models.LoanInstalment) (string, error)
+	UserID(ctx context.Context, obj *models.LoanInstalment) (*string, error)
+	LoanID(ctx context.Context, obj *models.LoanInstalment) (*string, error)
+	LoanRepaymentAmount(ctx context.Context, obj *models.LoanInstalment) (*float64, error)
+	LoanRepaymentDate(ctx context.Context, obj *models.LoanInstalment) (*string, error)
+	RepaymentDuration(ctx context.Context, obj *models.LoanInstalment) (*string, error)
 }
 type MutationResolver interface {
 	RegisterUser(ctx context.Context, input model.RegisterUser) (*models.User, error)
@@ -170,6 +199,7 @@ type MutationResolver interface {
 	RegisterAssociation(ctx context.Context, name string) (*models.Association, error)
 	CreateWaitList(ctx context.Context, input model.RegisterWaitlist) (bool, error)
 	LoanApplication(ctx context.Context, input model.LoanApplicationRequest) (*models.Loan, error)
+	ApproveLoanToggle(ctx context.Context, loanID string, loanStatus model.LoanStatusEnum) (bool, error)
 }
 type QueryResolver interface {
 	GetAllUsers(ctx context.Context, page models.Page) (*model.GetUsersResult, error)
@@ -177,6 +207,8 @@ type QueryResolver interface {
 	GeAllWaitlists(ctx context.Context, input model.GetWaitlistsRequest) (*model.GetWaitlistsResult, error)
 	GetAllAssociations(ctx context.Context, input model.GetAssociationsRequest) (*model.GetAssociationsResult, error)
 	GetAllLoans(ctx context.Context, page models.Page) (*model.GetLoansResult, error)
+	GetLoansByUserID(ctx context.Context, userID string) ([]*models.Loan, error)
+	GetLoanInstalmentsByUserID(ctx context.Context, userID string, page models.Page) (*model.GetLoanInstalmentsResult, error)
 }
 type UserResolver interface {
 	ID(ctx context.Context, obj *models.User) (string, error)
@@ -240,6 +272,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GetAssociationsResult.Page(childComplexity), true
+
+	case "GetLoanInstalmentsResult.items":
+		if e.complexity.GetLoanInstalmentsResult.Items == nil {
+			break
+		}
+
+		return e.complexity.GetLoanInstalmentsResult.Items(childComplexity), true
+
+	case "GetLoanInstalmentsResult.page":
+		if e.complexity.GetLoanInstalmentsResult.Page == nil {
+			break
+		}
+
+		return e.complexity.GetLoanInstalmentsResult.Page(childComplexity), true
 
 	case "GetLoansResult.items":
 		if e.complexity.GetLoansResult.Items == nil {
@@ -339,6 +385,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Loan.LoanApprovalDate(childComplexity), true
 
+	case "Loan.loanRepaymentDates":
+		if e.complexity.Loan.LoanRepaymentDates == nil {
+			break
+		}
+
+		return e.complexity.Loan.LoanRepaymentDates(childComplexity), true
+
 	case "Loan.otherLoansAmount":
 		if e.complexity.Loan.OtherLoansAmount == nil {
 			break
@@ -346,19 +399,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Loan.OtherLoansAmount(childComplexity), true
 
-	case "Loan.repayment":
-		if e.complexity.Loan.Repayment == nil {
+	case "Loan.repaymentAmount":
+		if e.complexity.Loan.RepaymentAmount == nil {
 			break
 		}
 
-		return e.complexity.Loan.Repayment(childComplexity), true
-
-	case "Loan.repaymentDates":
-		if e.complexity.Loan.RepaymentDates == nil {
-			break
-		}
-
-		return e.complexity.Loan.RepaymentDates(childComplexity), true
+		return e.complexity.Loan.RepaymentAmount(childComplexity), true
 
 	case "Loan.repaymentDuration":
 		if e.complexity.Loan.RepaymentDuration == nil {
@@ -380,6 +426,67 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Loan.Status(childComplexity), true
+
+	case "LoanInstalment.id":
+		if e.complexity.LoanInstalment.ID == nil {
+			break
+		}
+
+		return e.complexity.LoanInstalment.ID(childComplexity), true
+
+	case "LoanInstalment.loanID":
+		if e.complexity.LoanInstalment.LoanID == nil {
+			break
+		}
+
+		return e.complexity.LoanInstalment.LoanID(childComplexity), true
+
+	case "LoanInstalment.loanRepaymentAmount":
+		if e.complexity.LoanInstalment.LoanRepaymentAmount == nil {
+			break
+		}
+
+		return e.complexity.LoanInstalment.LoanRepaymentAmount(childComplexity), true
+
+	case "LoanInstalment.loanRepaymentDate":
+		if e.complexity.LoanInstalment.LoanRepaymentDate == nil {
+			break
+		}
+
+		return e.complexity.LoanInstalment.LoanRepaymentDate(childComplexity), true
+
+	case "LoanInstalment.repaymentDuration":
+		if e.complexity.LoanInstalment.RepaymentDuration == nil {
+			break
+		}
+
+		return e.complexity.LoanInstalment.RepaymentDuration(childComplexity), true
+
+	case "LoanInstalment.repaymentStatus":
+		if e.complexity.LoanInstalment.RepaymentStatus == nil {
+			break
+		}
+
+		return e.complexity.LoanInstalment.RepaymentStatus(childComplexity), true
+
+	case "LoanInstalment.userID":
+		if e.complexity.LoanInstalment.UserID == nil {
+			break
+		}
+
+		return e.complexity.LoanInstalment.UserID(childComplexity), true
+
+	case "Mutation.approveLoanToggle":
+		if e.complexity.Mutation.ApproveLoanToggle == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_approveLoanToggle_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ApproveLoanToggle(childComplexity, args["loanId"].(string), args["loanStatus"].(model.LoanStatusEnum)), true
 
 	case "Mutation.createWaitList":
 		if e.complexity.Mutation.CreateWaitList == nil {
@@ -535,6 +642,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAllUsers(childComplexity, args["page"].(models.Page)), true
+
+	case "Query.getLoanInstalmentsByUserID":
+		if e.complexity.Query.GetLoanInstalmentsByUserID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getLoanInstalmentsByUserID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetLoanInstalmentsByUserID(childComplexity, args["userID"].(string), args["page"].(models.Page)), true
+
+	case "Query.getLoansByUserId":
+		if e.complexity.Query.GetLoansByUserID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getLoansByUserId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetLoansByUserID(childComplexity, args["userID"].(string)), true
 
 	case "User.association":
 		if e.complexity.User.Association == nil {
@@ -821,9 +952,9 @@ input GetAssociationsRequest {
   repaymentDuration : String
   otherLoansAmount : Float
   loanAmount : Float
-  repayment : Float
+  repaymentAmount : Float
   amountPaid : Float
-  repaymentDates : [String]
+  loanRepaymentDates : [String]
   accountNumber : String
   accountName : String
   bank : String
@@ -831,6 +962,16 @@ input GetAssociationsRequest {
   repaymentStatus : String
   balance : Float
   loanApprovalDate : String
+}
+
+type LoanInstalment{
+    id: ID!
+    userID : String
+    loanID : String
+    loanRepaymentAmount : Float
+    loanRepaymentDate : String
+    repaymentDuration : String
+    repaymentStatus : String
 }
 
 input LoanApplicationRequest {
@@ -847,6 +988,17 @@ type GetLoansResult{
     items: [Loan!]
 }
 
+type GetLoanInstalmentsResult{
+    page: PageInfo!
+    items: [LoanInstalment!]
+}
+
+enum LoanStatusEnum{
+    approved
+    declined
+    pending
+}
+
 `, BuiltIn: false},
 	{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
   # User
@@ -861,14 +1013,19 @@ type GetLoansResult{
 
   # Loan
   loanApplication(input : LoanApplicationRequest!) : Loan!
+  approveLoanToggle(loanId : String!,loanStatus : LoanStatusEnum!) : Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/schema/queries.graphqls", Input: `type Query {
   getAllUsers (page : Page!): GetUsersResult!
   authenticateUser(email:String!,password:String!): UserAuthenticated!
+
   geAllWaitlists (input: GetWaitlistsRequest!): GetWaitlistsResult!
   getAllAssociations (input: GetAssociationsRequest!): GetAssociationsResult!
+
   getAllLoans (page : Page!) : GetLoansResult!
+  getLoansByUserId(userID : String!) : [Loan!]
+  getLoanInstalmentsByUserID(userID : String!,page : Page!) : GetLoanInstalmentsResult!
 }`, BuiltIn: false},
 	{Name: "graph/schema/user.graphqls", Input: `type User {
   id: ID!
@@ -1017,6 +1174,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_approveLoanToggle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["loanId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("loanId"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["loanId"] = arg0
+	var arg1 model.LoanStatusEnum
+	if tmp, ok := rawArgs["loanStatus"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("loanStatus"))
+		arg1, err = ec.unmarshalNLoanStatusEnum2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐLoanStatusEnum(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["loanStatus"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createWaitList_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1192,6 +1373,45 @@ func (ec *executionContext) field_Query_getAllUsers_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getLoanInstalmentsByUserID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 models.Page
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg1, err = ec.unmarshalNPage2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPage(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getLoansByUserId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1362,6 +1582,73 @@ func (ec *executionContext) _GetAssociationsResult_items(ctx context.Context, fi
 	res := resTmp.([]*models.Association)
 	fc.Result = res
 	return ec.marshalOAssociation2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐAssociationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetLoanInstalmentsResult_page(ctx context.Context, field graphql.CollectedField, obj *model.GetLoanInstalmentsResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetLoanInstalmentsResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Page, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetLoanInstalmentsResult_items(ctx context.Context, field graphql.CollectedField, obj *model.GetLoanInstalmentsResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetLoanInstalmentsResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.LoanInstalment)
+	fc.Result = res
+	return ec.marshalOLoanInstalment2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoanInstalmentᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _GetLoansResult_page(ctx context.Context, field graphql.CollectedField, obj *model.GetLoansResult) (ret graphql.Marshaler) {
@@ -1696,7 +1983,7 @@ func (ec *executionContext) _Loan_loanAmount(ctx context.Context, field graphql.
 	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Loan_repayment(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+func (ec *executionContext) _Loan_repaymentAmount(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1707,14 +1994,14 @@ func (ec *executionContext) _Loan_repayment(ctx context.Context, field graphql.C
 		Object:     "Loan",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Repayment, nil
+		return ec.resolvers.Loan().RepaymentAmount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1723,9 +2010,9 @@ func (ec *executionContext) _Loan_repayment(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Loan_amountPaid(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
@@ -1760,7 +2047,7 @@ func (ec *executionContext) _Loan_amountPaid(ctx context.Context, field graphql.
 	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Loan_repaymentDates(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
+func (ec *executionContext) _Loan_loanRepaymentDates(ctx context.Context, field graphql.CollectedField, obj *models.Loan) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1778,7 +2065,7 @@ func (ec *executionContext) _Loan_repaymentDates(ctx context.Context, field grap
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Loan().RepaymentDates(rctx, obj)
+		return ec.resolvers.Loan().LoanRepaymentDates(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2016,6 +2303,233 @@ func (ec *executionContext) _Loan_loanApprovalDate(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _LoanInstalment_id(ctx context.Context, field graphql.CollectedField, obj *models.LoanInstalment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "LoanInstalment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LoanInstalment().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LoanInstalment_userID(ctx context.Context, field graphql.CollectedField, obj *models.LoanInstalment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "LoanInstalment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LoanInstalment().UserID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LoanInstalment_loanID(ctx context.Context, field graphql.CollectedField, obj *models.LoanInstalment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "LoanInstalment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LoanInstalment().LoanID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LoanInstalment_loanRepaymentAmount(ctx context.Context, field graphql.CollectedField, obj *models.LoanInstalment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "LoanInstalment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LoanInstalment().LoanRepaymentAmount(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LoanInstalment_loanRepaymentDate(ctx context.Context, field graphql.CollectedField, obj *models.LoanInstalment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "LoanInstalment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LoanInstalment().LoanRepaymentDate(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LoanInstalment_repaymentDuration(ctx context.Context, field graphql.CollectedField, obj *models.LoanInstalment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "LoanInstalment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LoanInstalment().RepaymentDuration(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LoanInstalment_repaymentStatus(ctx context.Context, field graphql.CollectedField, obj *models.LoanInstalment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "LoanInstalment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepaymentStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_registerUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2224,6 +2738,48 @@ func (ec *executionContext) _Mutation_loanApplication(ctx context.Context, field
 	res := resTmp.(*models.Loan)
 	fc.Result = res
 	return ec.marshalNLoan2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_approveLoanToggle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_approveLoanToggle_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ApproveLoanToggle(rctx, args["loanId"].(string), args["loanStatus"].(model.LoanStatusEnum))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_page(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
@@ -2609,6 +3165,87 @@ func (ec *executionContext) _Query_getAllLoans(ctx context.Context, field graphq
 	res := resTmp.(*model.GetLoansResult)
 	fc.Result = res
 	return ec.marshalNGetLoansResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoansResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getLoansByUserId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getLoansByUserId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetLoansByUserID(rctx, args["userID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Loan)
+	fc.Result = res
+	return ec.marshalOLoan2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getLoanInstalmentsByUserID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getLoanInstalmentsByUserID_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetLoanInstalmentsByUserID(rctx, args["userID"].(string), args["page"].(models.Page))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GetLoanInstalmentsResult)
+	fc.Result = res
+	return ec.marshalNGetLoanInstalmentsResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoanInstalmentsResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5336,6 +5973,44 @@ func (ec *executionContext) _GetAssociationsResult(ctx context.Context, sel ast.
 	return out
 }
 
+var getLoanInstalmentsResultImplementors = []string{"GetLoanInstalmentsResult"}
+
+func (ec *executionContext) _GetLoanInstalmentsResult(ctx context.Context, sel ast.SelectionSet, obj *model.GetLoanInstalmentsResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, getLoanInstalmentsResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GetLoanInstalmentsResult")
+		case "page":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._GetLoanInstalmentsResult_page(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "items":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._GetLoanInstalmentsResult_items(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var getLoansResultImplementors = []string{"GetLoansResult"}
 
 func (ec *executionContext) _GetLoansResult(ctx context.Context, sel ast.SelectionSet, obj *model.GetLoansResult) graphql.Marshaler {
@@ -5511,21 +6186,7 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = innerFunc(ctx)
 
-		case "repayment":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Loan_repayment(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "amountPaid":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Loan_amountPaid(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "repaymentDates":
+		case "repaymentAmount":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -5534,7 +6195,31 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Loan_repaymentDates(ctx, field, obj)
+				res = ec._Loan_repaymentAmount(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "amountPaid":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Loan_amountPaid(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "loanRepaymentDates":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Loan_loanRepaymentDates(ctx, field, obj)
 				return res
 			}
 
@@ -5612,6 +6297,139 @@ func (ec *executionContext) _Loan(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
+var loanInstalmentImplementors = []string{"LoanInstalment"}
+
+func (ec *executionContext) _LoanInstalment(ctx context.Context, sel ast.SelectionSet, obj *models.LoanInstalment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, loanInstalmentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LoanInstalment")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LoanInstalment_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "userID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LoanInstalment_userID(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "loanID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LoanInstalment_loanID(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "loanRepaymentAmount":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LoanInstalment_loanRepaymentAmount(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "loanRepaymentDate":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LoanInstalment_loanRepaymentDate(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "repaymentDuration":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LoanInstalment_repaymentDuration(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "repaymentStatus":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._LoanInstalment_repaymentStatus(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -5674,6 +6492,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "loanApplication":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_loanApplication(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "approveLoanToggle":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_approveLoanToggle(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -5884,6 +6712,49 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getAllLoans(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getLoansByUserId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getLoansByUserId(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getLoanInstalmentsByUserID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getLoanInstalmentsByUserID(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -6781,6 +7652,20 @@ func (ec *executionContext) marshalNGetAssociationsResult2ᚖgithubᚗcomᚋMast
 	return ec._GetAssociationsResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNGetLoanInstalmentsResult2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoanInstalmentsResult(ctx context.Context, sel ast.SelectionSet, v model.GetLoanInstalmentsResult) graphql.Marshaler {
+	return ec._GetLoanInstalmentsResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGetLoanInstalmentsResult2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoanInstalmentsResult(ctx context.Context, sel ast.SelectionSet, v *model.GetLoanInstalmentsResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._GetLoanInstalmentsResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNGetLoansResult2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐGetLoansResult(ctx context.Context, sel ast.SelectionSet, v model.GetLoansResult) graphql.Marshaler {
 	return ec._GetLoansResult(ctx, sel, &v)
 }
@@ -6911,6 +7796,26 @@ func (ec *executionContext) marshalNLoan2ᚖgithubᚗcomᚋMastoCredᚑIncᚋweb
 func (ec *executionContext) unmarshalNLoanApplicationRequest2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐLoanApplicationRequest(ctx context.Context, v interface{}) (model.LoanApplicationRequest, error) {
 	res, err := ec.unmarshalInputLoanApplicationRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLoanInstalment2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoanInstalment(ctx context.Context, sel ast.SelectionSet, v *models.LoanInstalment) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LoanInstalment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLoanStatusEnum2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐLoanStatusEnum(ctx context.Context, v interface{}) (model.LoanStatusEnum, error) {
+	var res model.LoanStatusEnum
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLoanStatusEnum2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋhᚋgraphᚋmodelᚐLoanStatusEnum(ctx context.Context, sel ast.SelectionSet, v model.LoanStatusEnum) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNPage2githubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐPage(ctx context.Context, v interface{}) (models.Page, error) {
@@ -7414,6 +8319,53 @@ func (ec *executionContext) marshalOLoan2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋ
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNLoan2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOLoanInstalment2ᚕᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoanInstalmentᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.LoanInstalment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLoanInstalment2ᚖgithubᚗcomᚋMastoCredᚑIncᚋwebᚑappᚋmodelsᚐLoanInstalment(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

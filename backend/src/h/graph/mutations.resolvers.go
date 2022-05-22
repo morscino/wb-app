@@ -180,6 +180,34 @@ func (r *mutationResolver) LoanApplication(ctx context.Context, input model.Loan
 	return newLoan, nil
 }
 
+func (r *mutationResolver) ApproveLoanToggle(ctx context.Context, loanID string, loanStatus model.LoanStatusEnum) (bool, error) {
+	ginC, err := helper.GinContextFromContext(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	actorUser, err := r.controller.Middleware().PasetoUserAuth(ginC)
+	if err != nil {
+		return false, err
+	}
+
+	if actorUser.UserType != int64(models.UserTypeAdmin) {
+		return false, language.ErrText()[language.ErrAccessDenied]
+	}
+
+	l, err := helper.StringToUuid(loanID)
+	if err != nil {
+		return false, language.ErrText()[language.ErrParseError]
+	}
+
+	_, err = r.controller.ApproveLoanToggle(ctx, l, string(loanStatus))
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

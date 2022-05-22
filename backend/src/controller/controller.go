@@ -29,17 +29,21 @@ type Operations interface {
 	GetAllLoans(ctx context.Context, page models.Page) ([]*models.Loan, *models.PageInfo, error)
 
 	ApplyForLoan(ctx context.Context, loan models.Loan, userID uuid.UUID) (*models.Loan, error)
+	ApproveLoanToggle(ctx context.Context, loanID uuid.UUID, status string) (bool, error)
+
+	GetLoanInstalmentsByUserID(ctx context.Context, userID uuid.UUID, page models.Page) ([]*models.LoanInstalment, *models.PageInfo, error)
 }
 
 type Controller struct {
-	env                *environment.Env
-	uploadService      upload.Uploader
-	logger             zerolog.Logger
-	userStorage        storage.UserStore
-	loanStorage        storage.LoanStore
-	associationstorage storage.AssociationStore
-	waitlistStorage    storage.WaitlistStore
-	middleware         *middleware.Middleware
+	env                   *environment.Env
+	uploadService         upload.Uploader
+	logger                zerolog.Logger
+	userStorage           storage.UserStore
+	loanStorage           storage.LoanStore
+	associationstorage    storage.AssociationStore
+	waitlistStorage       storage.WaitlistStore
+	loanInstalmentStorage storage.LoanInstalmentStore
+	middleware            *middleware.Middleware
 }
 
 func New(l zerolog.Logger, s *database.Storage, middleware *middleware.Middleware) *Operations {
@@ -48,17 +52,19 @@ func New(l zerolog.Logger, s *database.Storage, middleware *middleware.Middlewar
 	assoc := storage.NewAssociation(s)
 	loan := storage.NewLoan(s)
 	upload := upload.NewUpload(l, s.Env)
+	loanInstalment := storage.NewLoanInstalment(s)
 
 	// build controller struct
 	c := &Controller{
-		logger:             l,
-		uploadService:      *upload,
-		userStorage:        *user,
-		loanStorage:        *loan,
-		waitlistStorage:    *waitlist,
-		middleware:         middleware,
-		env:                s.Env,
-		associationstorage: *assoc,
+		logger:                l,
+		uploadService:         *upload,
+		userStorage:           *user,
+		loanStorage:           *loan,
+		waitlistStorage:       *waitlist,
+		middleware:            middleware,
+		loanInstalmentStorage: *loanInstalment,
+		env:                   s.Env,
+		associationstorage:    *assoc,
 	}
 	op := Operations(c)
 	return &op

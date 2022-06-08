@@ -1,4 +1,4 @@
-module github.com/MastoCred-Inc/web-app
+module gitlab.com/mastocred/web-app
 
 go 1.17
 

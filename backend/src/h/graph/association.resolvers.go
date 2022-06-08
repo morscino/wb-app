@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 
-	"github.com/MastoCred-Inc/web-app/h/graph/generated"
-	"github.com/MastoCred-Inc/web-app/models"
+	"gitlab.com/mastocred/web-app/h/graph/generated"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 func (r *associationResolver) ID(ctx context.Context, obj *models.Association) (string, error) {

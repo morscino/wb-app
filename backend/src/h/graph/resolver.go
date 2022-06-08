@@ -1,9 +1,9 @@
 package graph
 
 import (
-	"github.com/MastoCred-Inc/web-app/controller"
-	"github.com/MastoCred-Inc/web-app/utility/environment"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/controller"
+	"gitlab.com/mastocred/web-app/utility/environment"
 )
 
 // This file will not be regenerated automatically.

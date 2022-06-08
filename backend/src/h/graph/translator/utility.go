@@ -1,6 +1,6 @@
 package translator
 
-// import "github.com/MastoCred-Inc/web-app/models"
+// import "gitlab.com/mastocred/web-app/models"
 
 // // ToPaginationPage helper transformer to convert a graphql Page model to model
 // func ToPaginationPage(page model.Page) models.Page {

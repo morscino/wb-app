@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 const (

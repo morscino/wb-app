@@ -3,12 +3,12 @@ package h
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/MastoCred-Inc/web-app/controller"
-	"github.com/MastoCred-Inc/web-app/h/graph"
-	"github.com/MastoCred-Inc/web-app/h/graph/generated"
-	"github.com/MastoCred-Inc/web-app/utility/environment"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/controller"
+	"gitlab.com/mastocred/web-app/h/graph"
+	"gitlab.com/mastocred/web-app/h/graph/generated"
+	"gitlab.com/mastocred/web-app/utility/environment"
 )
 
 func GraphqlHandler(l zerolog.Logger, c controller.Operations, env *environment.Env) gin.HandlerFunc {

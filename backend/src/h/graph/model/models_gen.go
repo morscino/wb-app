@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/MastoCred-Inc/web-app/models"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 type GetAssociationsRequest struct {

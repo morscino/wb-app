@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/MastoCred-Inc/web-app/utility/environment"
-	"github.com/MastoCred-Inc/web-app/utility/helper"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/utility/environment"
+	"gitlab.com/mastocred/web-app/utility/helper"
 )
 
 const dir = "migration"

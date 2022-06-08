@@ -8,15 +8,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/MastoCred-Inc/web-app/controller"
-	"github.com/MastoCred-Inc/web-app/database/postgres_db"
-	"github.com/MastoCred-Inc/web-app/h"
-	"github.com/MastoCred-Inc/web-app/middleware"
-	"github.com/MastoCred-Inc/web-app/utility/environment"
 	ginzerolog "github.com/dn365/gin-zerolog"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/controller"
+	"gitlab.com/mastocred/web-app/database/postgres_db"
+	"gitlab.com/mastocred/web-app/h"
+	"gitlab.com/mastocred/web-app/middleware"
+	"gitlab.com/mastocred/web-app/utility/environment"
 )
 
 func main() {

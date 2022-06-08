@@ -3,15 +3,15 @@ package controller
 import (
 	"context"
 
-	"github.com/MastoCred-Inc/web-app/database"
-	"github.com/MastoCred-Inc/web-app/integrations/upload"
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/middleware"
-	"github.com/MastoCred-Inc/web-app/models"
-	"github.com/MastoCred-Inc/web-app/storage"
-	"github.com/MastoCred-Inc/web-app/utility/environment"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/database"
+	"gitlab.com/mastocred/web-app/integrations/upload"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/middleware"
+	"gitlab.com/mastocred/web-app/models"
+	"gitlab.com/mastocred/web-app/storage"
+	"gitlab.com/mastocred/web-app/utility/environment"
 )
 
 //go:generate mockgen -source controller.go -destination ./mock/mock_controller.go -package mock Operations

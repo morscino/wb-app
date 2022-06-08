@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/MastoCred-Inc/web-app/database"
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/database"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 //go:generate mockgen -source waitlist.go -destination ./mock/mock_waitlist.go -package mock WaitlistStore

@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 // CreateWaitlist creates a new waitlist

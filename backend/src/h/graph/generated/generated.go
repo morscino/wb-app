@@ -12,8 +12,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/MastoCred-Inc/web-app/h/graph/model"
-	"github.com/MastoCred-Inc/web-app/models"
+	"gitlab.com/mastocred/web-app/h/graph/model"
+	"gitlab.com/mastocred/web-app/models"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )

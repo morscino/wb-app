@@ -3,8 +3,8 @@ package test_util
 import (
 	"time"
 
-	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/google/uuid"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 // NewTestUser returns a test user object

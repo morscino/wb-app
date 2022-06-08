@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 func (c *Controller) RegisterUser(ctx context.Context, u models.User) (*models.User, error) {

@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	middleware "github.com/MastoCred-Inc/web-app/middleware"
-	models "github.com/MastoCred-Inc/web-app/models"
+	middleware "gitlab.com/mastocred/web-app/middleware"
+	models "gitlab.com/mastocred/web-app/models"
 	gomock "github.com/golang/mock/gomock"
 )
 

@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MastoCred-Inc/web-app/h/graph/model"
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
-	"github.com/MastoCred-Inc/web-app/utility/helper"
 	"github.com/google/uuid"
+	"gitlab.com/mastocred/web-app/h/graph/model"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
+	"gitlab.com/mastocred/web-app/utility/helper"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")

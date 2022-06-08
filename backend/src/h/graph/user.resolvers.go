@@ -6,9 +6,9 @@ package graph
 import (
 	"context"
 
-	"github.com/MastoCred-Inc/web-app/h/graph/generated"
-	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/google/uuid"
+	"gitlab.com/mastocred/web-app/h/graph/generated"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error) {

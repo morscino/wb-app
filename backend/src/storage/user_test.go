@@ -5,8 +5,8 @@ import (
 	"regexp"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/MastoCred-Inc/web-app/utility/test_util"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/mastocred/web-app/utility/test_util"
 )
 
 var userTableColumns = []string{"last_name", "first_name", "email", "password", "salt", "created_at", "updated_at", "id"}

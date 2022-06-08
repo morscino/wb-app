@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/google/uuid"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 func (c *Controller) RegisterAssociation(ctx context.Context, a models.Association) (*models.Association, error) {

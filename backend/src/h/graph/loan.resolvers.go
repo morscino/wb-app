@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/MastoCred-Inc/web-app/h/graph/generated"
-	"github.com/MastoCred-Inc/web-app/models"
-	"github.com/MastoCred-Inc/web-app/utility/helper"
+	"gitlab.com/mastocred/web-app/h/graph/generated"
+	"gitlab.com/mastocred/web-app/models"
+	"gitlab.com/mastocred/web-app/utility/helper"
 )
 
 func (r *loanResolver) ID(ctx context.Context, obj *models.Loan) (string, error) {

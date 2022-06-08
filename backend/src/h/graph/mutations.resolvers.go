@@ -7,14 +7,14 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/MastoCred-Inc/web-app/h/graph/generated"
-	"github.com/MastoCred-Inc/web-app/h/graph/model"
-	"github.com/MastoCred-Inc/web-app/h/graph/translator"
-	"github.com/MastoCred-Inc/web-app/integrations/upload"
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
-	"github.com/MastoCred-Inc/web-app/utility/helper"
 	"github.com/google/uuid"
+	"gitlab.com/mastocred/web-app/h/graph/generated"
+	"gitlab.com/mastocred/web-app/h/graph/model"
+	"gitlab.com/mastocred/web-app/h/graph/translator"
+	"gitlab.com/mastocred/web-app/integrations/upload"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
+	"gitlab.com/mastocred/web-app/utility/helper"
 )
 
 func (r *mutationResolver) RegisterUser(ctx context.Context, input model.RegisterUser) (*models.User, error) {

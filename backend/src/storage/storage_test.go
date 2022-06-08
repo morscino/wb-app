@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/MastoCred-Inc/web-app/database"
-	"github.com/MastoCred-Inc/web-app/database/postgres_db"
 	"github.com/stretchr/testify/suite"
+	"gitlab.com/mastocred/web-app/database"
+	"gitlab.com/mastocred/web-app/database/postgres_db"
 	"gorm.io/gorm"
 )
 

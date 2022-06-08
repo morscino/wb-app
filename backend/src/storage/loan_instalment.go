@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/MastoCred-Inc/web-app/database"
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/database"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 //go:generate mockgen -source loan_instalment.go -destination ./mock/loan_instalment.go -package mock LoanInstalmentStore

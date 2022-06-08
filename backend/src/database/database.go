@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/MastoCred-Inc/web-app/utility/environment"
 	"github.com/rs/zerolog"
+	"gitlab.com/mastocred/web-app/utility/environment"
 	"gorm.io/gorm"
 )
 

@@ -10,8 +10,8 @@ ENV GO111MODULE=on \
     GOARCH=amd64
 
 RUN touch /tmp/runner-build-errors.log
-COPY . /go/src/github.com/MastoCred-Inc/web-app/backend
-WORKDIR /go/src/github.com/MastoCred-Inc/web-app/backend/src
+COPY . /go/src/gitlab.com/mastocred/web-app/backend
+WORKDIR /go/src/gitlab.com/mastocred/web-app/backend/src
 
 #RUN go mod download
 RUN go get ./

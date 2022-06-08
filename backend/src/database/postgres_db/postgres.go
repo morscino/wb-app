@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/MastoCred-Inc/web-app/database"
-	"github.com/MastoCred-Inc/web-app/utility/environment"
-	"github.com/MastoCred-Inc/web-app/utility/gorm_sqlmock"
-	"github.com/MastoCred-Inc/web-app/utility/helper"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/mastocred/web-app/database"
+	"gitlab.com/mastocred/web-app/utility/environment"
+	"gitlab.com/mastocred/web-app/utility/gorm_sqlmock"
+	"gitlab.com/mastocred/web-app/utility/helper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

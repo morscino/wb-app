@@ -3,9 +3,9 @@ package translator
 import (
 	"strings"
 
-	"github.com/MastoCred-Inc/web-app/h/graph/model"
-	"github.com/MastoCred-Inc/web-app/language"
-	"github.com/MastoCred-Inc/web-app/models"
+	"gitlab.com/mastocred/web-app/h/graph/model"
+	"gitlab.com/mastocred/web-app/language"
+	"gitlab.com/mastocred/web-app/models"
 )
 
 func ConvertWaitlistInputToWaitlistModel(input model.RegisterWaitlist) (*models.Waitlist, error) {

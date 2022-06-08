@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/MastoCred-Inc/web-app/utility/environment"
 	"github.com/google/uuid"
 	"github.com/o1egl/paseto"
+	"gitlab.com/mastocred/web-app/utility/environment"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
